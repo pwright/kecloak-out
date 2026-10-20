@@ -1,0 +1,134 @@
+[id="graceful-http-shutdown_{context}"]
+= Graceful HTTP shutdown
+
+
+When running {project_name} behind a reverse proxy or load balancer, graceful shutdown ensures that in-flight requests complete successfully during server termination, preventing connection errors for clients.
+
+{project_name} enables graceful HTTP shutdown by default with configurable timeouts.
+
+
+**Understanding shutdown phases**
+
+
+The shutdown process consists of two phases:
+
+*Pre-shutdown delay*:: During this phase, {project_name} signals to load balancers and proxies that it is preparing to shut down.
+The server's readiness endpoint returns a "not ready" status, allowing the load balancer to stop routing new requests to this instance.
+Existing TLS and HTTP keepalive connections are allowed to drain naturally.
+The server continues to process existing requests.
+
+*Shutdown timeout*:: After the pre-shutdown delay, {project_name} waits for in-flight HTTP requests to complete.
+Once the HTTP requests are complete, it uses the remaining time of the shutdown timeout to wait for caches to rebalance to avoid possible data loss.
+Once the timeout expires, the server shuts down regardless.
+
+
+**Default behavior**
+
+
+By default, {project_name} is configured with a 1-second pre-shutdown delay and a 10-second shutdown timeout.
+These defaults work well for most standard deployments where:
+
+* The load balancer reconfigures quickly (within 1 second)
+* Most requests complete within 1 second
+* The reverse proxy uses edge termination or re-encryption (not TLS passthrough)
+
+
+**Configuring shutdown timeouts**
+
+
+Advanced users can adjust the shutdown timeouts using CLI options based on their deployment characteristics.
+
+[source,bash]
+----
+bin/kc.sh start --shutdown-delay=<duration> --shutdown-timeout=<duration>
+----
+
+Available options:
+
+`--shutdown-delay`::
+Length of the pre-shutdown phase during which the server prepares for shutdown.
+This period allows for load balancer reconfiguration and draining of TLS/HTTP keepalive connections.
+Default: `1s`
+
+`--shutdown-timeout`::
+The shutdown period waiting for currently running HTTP requests to finish.
+Default: `10s`
+
+Both values accept duration formats: `1s` (seconds), `500ms` (milliseconds), `2m` (minutes), etc.
+
+
+**When to adjust shutdown timeouts**
+
+
+Consider adjusting these values based on your deployment configuration.
+The following table shows example scenarios:
+
+[%autowidth,cols="2,>1,>1,3a"]
+|===
+|Scenario |Delay |Timeout |Reason
+
+|Load balancer polls readiness probe
+|16s
+|
+|Assumptions:
+
+* A 5s poll interval and a load balancer reconfiguring after two successive failed probes.
+* 1s for reconfiguring the proxy.
+* Proxy using TLS re-encrypt or edge termination.
+
+Calculation:
+
+* Allow three poll cycles for the load balancer to detect shutdown and the extra time for the load balancer to perform the reconfiguration:
++
+`shutdown delay = 3 * 5s + 1s`
+
+|TLS passthrough configuration
+|10‑30s
+|
+|Longer delay allows keepalive connections to drain naturally and receive connection close signals.
+
+|Long-running admin API requests
+|
+|10‑30s
+|Admin operations may take longer than typical user requests.
+
+|Test environments / quick restarts
+|0s
+|500ms
+|Minimize shutdown time when graceful draining is not needed.
+
+|Deployment orchestration reconfigures the proxy and drains connections before Pod termination
+|0s
+|
+|No pre-shutdown delay needed if proxy is already reconfigured
+
+|Combined: TLS passthrough plus polled readiness
+|26‑56s
+|
+|Delays add up: time for load balancer detection + connection draining
+
+|===
+
+
+**Example configurations**
+
+
+For production with TLS passthrough:
+
+<@kc.start parameters="--shutdown-delay=30s" />
+
+For load balancers that poll readiness:
+
+<@kc.start parameters="--shutdown-delay=16s"/>
+
+For test environments:
+
+<@kc.start parameters="--shutdown-delay=0s --shutdown-timeout=500ms"/>
+
+[NOTE]
+====
+The shutdown delay affects the minimum time required for a complete server restart.
+In Kubernetes environments, ensure your `terminationGracePeriodSeconds` is longer than the sum of `shutdown-delay` and `shutdown-timeout` to prevent forced termination.
+====
+
+</@tmpl.guide>

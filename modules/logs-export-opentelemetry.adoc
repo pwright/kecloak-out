@@ -1,0 +1,43 @@
+[id="logs-export-opentelemetry_{context}"]
+= Telemetry Logs export (OpenTelemetry)
+
+
+It is possible to export OpenTelemetry logs from your deployment to the OpenTelemetry collector for centralized log management.
+
+For more details, see the <@links.observability id="telemetry"/> guide.
+
+<@opts.printRelevantOptions includedOptions="log log-*" excludedOptions="log-console-* log-file log-file-* log-syslog-* log-mdc* telemetry-logs-*">
+
+
+**Console**
+
+<@opts.includeOptions includedOptions="log-console-*"/>
+
+
+**File**
+
+<@opts.includeOptions includedOptions="log-file log-file-*"/>
+
+
+**Syslog**
+
+<@opts.includeOptions includedOptions="log-syslog-*"/>
+
+
+**HTTP Access log**
+
+<@opts.includeOptions includedOptions="http-access-log-*"/>
+
+
+**Mapped Diagnostic Context (MDC)**
+
+<@opts.includeOptions includedOptions="log-mdc*"/>
+
+
+**Telemetry Logs (OpenTelemetry)**
+
+<@opts.includeOptions includedOptions="telemetry-logs-*"/>
+
+</@opts.printRelevantOptions>
+
+</@tmpl.guide>

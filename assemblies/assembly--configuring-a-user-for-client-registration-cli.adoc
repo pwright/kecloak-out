@@ -1,0 +1,36 @@
+[id="_configuring_a_user_for_client_registration_cli_{context}"]
+= _configuring_a_user_for_client_registration_cli
+
+== Configuring a new regular user for use with Client Registration CLI
+
+.Procedure
+
+. Log in to the Admin Console (for example, http://localhost:8080) as [command]`admin`.
+. Select a realm to administer.
+. If you want to use an existing user, select that user to edit; otherwise, create a new user.
+
+. Select *Role Mapping*, *Assign role*. From the option list, click *Filter by clients*. In the search bar, type `manage-clients`. Select the role, or if you are in the master realm, select the one with *NAME-realm*, where `NAME` is the name of the target realm. You can grant access to any other realm to users in the master realm.
+
+. Click *Assign* to grant a full set of client management permissions. Another option is to choose *view-clients* for read-only or *create-client* to create new clients.
+
+. Select *Available Roles*, *manage-client* to grant a full set of client management permissions. Another option is to choose *view-clients* for read-only or *create-client* to create new clients.
+
++
+[NOTE]
+====
+These permissions grant the user the capability to perform operations without the use of Initial Access Token or Registration Access Token (see <@links.securingapps id="client-registration" anchor="_authentication" /> for more information).
+====
+
+It is possible to not assign any [command]`realm-management` roles to a user. In that case, a user can still log in with the Client Registration CLI but cannot use it without an Initial Access Token. Trying to perform any operations without a token results in a *403 Forbidden* error.
+
+The administrator can issue Initial Access Tokens from the Admin Console in the Clients area on the *Initial Access Token* tab.
+
+include::../modules/-configuring-a-client-for-use-with-client-registration-cli.adoc[leveloffset=+1]
+include::../modules/-installing-client-registration-cli.adoc[leveloffset=+1]
+include::../modules/-using-client-registration-cli.adoc[leveloffset=+1]
+include::../modules/-logging-in.adoc[leveloffset=+2]
+include::../modules/-working-with-alternative-configurations.adoc[leveloffset=+2]
+include::../modules/-initial-access-and-registration-access-tokens.adoc[leveloffset=+2]
+include::../modules/-performing-crud-operations.adoc[leveloffset=+2]
+include::../modules/-refreshing-invalid-registration-access-tokens.adoc[leveloffset=+2]
+include::../modules/-troubleshooting-2.adoc[leveloffset=+1]

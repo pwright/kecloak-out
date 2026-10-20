@@ -1,0 +1,15 @@
+[id="graceful-shutdown-considerations-haproxy-reencrypt_{context}"]
+= Graceful shutdown considerations
+
+
+The HAProxy health check settings determine how long it takes for the proxy to detect that a {project_name} instance is shutting down and that connections should no longer be routed to it.
+
+With the health check settings from the configuration above (`inter 5s fall 3`), it takes up to 15 seconds (3 failures x 5-second interval) for HAProxy to mark a {project_name} instance as down.
+During this period, {project_name} must remain running to serve in-flight requests.
+Therefore, you need to configure the `--shutdown-delay` to be at least as long as the detection time:
+
+<@kc.start parameters="--proxy-headers forwarded --health-enabled true --metrics-enabled true --https-certificate-file=/path/to/certificate --https-certificate-key-file=/path/to/key --https-client-auth=required --https-trust-store-file=/path/to/https-truststore --https-management-client-auth=none --shutdown-delay=16s"/>
+
+For a detailed explanation of shutdown phases and how to tune the delay and timeout values, see the Graceful HTTP shutdown section in the <@links.server id="reverseproxy"/> {section}.
+
+</@tmpl.guide>
