@@ -2,7 +2,21 @@
 = Legacy token exchange
 
 
-<@features.techpreviewdeprecated feature="token-exchange"/>
+
+[WARNING]
+====
+Token Exchange Service is
+ifeval::[{project_product}==true]
+*Technology Preview*
+endif::[]
+ifeval::[{project_community}==true]
+*Preview*
+endif::[]
+and *Deprecated*. This feature is not fully supported, disabled by default, and will be removed in future versions.
+
+To enable start the server with `--features=preview` or `--features=token-exchange`
+
+====
 
 [NOTE]
 ====
@@ -10,7 +24,7 @@ If you still need legacy token exchange feature, you also need link:{adminguide_
 link:{adminguide_link}#_fine_grained_permissions[Fine-grained admin permissions version 2] (FGAP:v2) does not have support for token exchange permissions. This is on purpose because
 token-exchange is conceptually not really an "admin" permission and hence there is no plan to add token exchange permissions to FGAP:v2.
 
-For details, see the <@links.server id="features" /> {section}.
+For details, see the link:{links_server_features_url}[{links_server_features_name}] {section}.
 ====
 
 

@@ -69,7 +69,7 @@ spec:
 
 Approve the install plan, then verify that the Operator pod is running.
 
-<@profile.ifCommunity>
+ifeval::[{project_product} != true]
 
 **Installing with kubectl**
 
@@ -162,7 +162,7 @@ helm install keycloak-operator oci://quay.io/keycloak/keycloak-operator-helm \
 ----
 
 After the chart is installed and the operator is healthy, you can leave CRD management as-is (out-of-band) or transfer ownership to the chart on the next upgrade by setting the `helm.sh/resource-policy: keep` annotation on the existing CRDs and re-installing with `crds.enabled=true`.
-</@profile.ifCommunity>
+endif::[]
 
 
 **Installing Multiple Operators**
@@ -199,6 +199,6 @@ To stop an operator you uninstall it, or scale down the Deployment to 0 replicas
 kubectl scale deployment/keycloak-operator --replicas=0
 ----
 
-See <@links.operator id="rolling-updates"/> to understand how the operator will treat server version changes.
+See link:{links_operator_rolling-updates_url}[{links_operator_rolling-updates_name}] to understand how the operator will treat server version changes.
 
-</@tmpl.guide>
+

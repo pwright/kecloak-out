@@ -14,14 +14,20 @@ You can customize these fields across all log handlers using the following optio
 These options apply to all log handlers (`console`, `file`, and `syslog`) that have JSON output enabled.
 
 .Example
-<@kc.start parameters="--log-console-output=json --log-service-name=my-keycloak --log-service-environment=production"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-console-output=json --log-service-name=my-keycloak --log-service-environment=production
+----
 
 
 **Example**
 
 If you want to have JSON logs in *ECS* (Elastic Common Schema) format for the console log handler, you can enter the following command:
 
-<@kc.start parameters="--log-console-output=json --log-console-json-format=ecs"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-console-output=json --log-console-json-format=ecs
+----
 
 .Example Log Message
 [source,json]
@@ -61,14 +67,20 @@ Additionally, unexpected server shutdowns create a risk of **losing log records*
 
 You can enable asynchronous logging globally for all log handlers by using `log-async` property as follows:
 
-<@kc.start parameters="--log-async=true"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-async=true
+----
 
 Or you can enable the asynchronous logging for every specific handler by using properties in the format `log-<handler>-async` (where `<handler>` is a log handler).
 If the property for a specific handler is not set, the value from the parent `log-async` property is used.
 
 You can use these properties as follows:
 
-<@kc.start parameters="--log-console-async=true --log-file-async=true --log-syslog-async=true"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-console-async=true --log-file-async=true --log-syslog-async=true
+----
 
 * `log-console-async` - Console log handler
 * `log-file-async` - File log handler
@@ -82,7 +94,10 @@ The default size is **512** log records in the queue.
 
 You can change the queue length as follows:
 
-<@kc.start parameters="--log-console-async-queue-length=512 --log-file-async-queue-length=512 --log-syslog-async-queue-length=512"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-console-async-queue-length=512 --log-file-async-queue-length=512 --log-syslog-async-queue-length=512
+----
 
 These properties are available only when asynchronous logging is enabled for these specific log handlers.
 

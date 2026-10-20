@@ -80,7 +80,7 @@ Theme properties are set in the file `<THEME TYPE>/theme.properties` in the them
 * parent - Parent theme to extend
 * import - Import resources from another theme
 * abstract - Boolean that, when present and `true`, marks the theme is only used as base for other extensions and is not displayed to be selected in the admin console on the realm themes page. Examples of this are the `base` themes described on this guide.
-* common - Override the common resource path. The default value is `common/keycloak` when not specified. This value would be used as value of suffix of ${r"`${url.resourcesCommonPath}`"} and ${r"`${url.resourcesCommonUrl}`"}, which are used typically in freemarker templates. ${r"`${url.resourcesCommonPath}`"} returns only the path, while ${r"`${url.resourcesCommonUrl}`"} returns the full URL including scheme and host, which is required for email templates.
+* common - Override the common resource path. The default value is `common/keycloak` when not specified. This value would be used as value of suffix of `${url.resourcesCommonPath}` and `${url.resourcesCommonUrl}`, which are used typically in freemarker templates. `${url.resourcesCommonPath}` returns only the path, while `${url.resourcesCommonUrl}` returns the full URL including scheme and host, which is required for email templates.
 * styles - Space-separated list of styles to include
 * stylesCommon - Space-separated list of common styles to include
 * scripts - Space-separated list of scripts to include
@@ -97,10 +97,10 @@ You can also add your own custom properties and use them from custom templates.
 
 When doing so, you can substitute system properties or environment variables by using these formats:
 
-* ${r"`${some.system.property}`"} - for system properties
-* ${r"`${env.ENV_VAR}`"} - for environment variables.
+* `${some.system.property}` - for system properties
+* `${env.ENV_VAR}` - for environment variables.
 
-A default value can also be provided in case the system property or the environment variable is not found with ${r"`${foo\:defaultValue}`"}.
+A default value can also be provided in case the system property or the environment variable is not found with `${foo\:defaultValue}`.
 
 NOTE: If no default value is provided and there's no corresponding system property or environment variable, then nothing is replaced and you end up with the format in your template.
 
@@ -108,9 +108,9 @@ Here's an example of what is possible:
 
 [source,properties]
 ----
-javaVersion=${r"${java.version}"}
+javaVersion=${java.version}
 
-unixHome=${r"${env.HOME:Unix home not found}"}
-windowsHome=${r"${env.HOMEPATH:Windows home not found}"}
+unixHome=${env.HOME:Unix home not found}
+windowsHome=${env.HOMEPATH:Windows home not found}
 ----
 

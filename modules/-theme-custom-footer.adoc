@@ -8,7 +8,6 @@ An example for a custom `footer.ftl` may look like this:
 
 [source]
 ----
-<#noparse>
 <#macro content>
 <#-- footer at the end of the login box -->
 <div>
@@ -19,7 +18,6 @@ An example for a custom `footer.ftl` may look like this:
     </ul>
 </div>
 </#macro>
-</#noparse>
 ----
 
 
@@ -34,14 +32,14 @@ To use directly in HTML templates add the following to a custom HTML template:
 
 [source,html]
 ----
-<img src="${r"${url.resourcesUrl}"}/img/image.jpg" alt="My image description">
+<img src="${url.resourcesUrl}/img/image.jpg" alt="My image description">
 ----
 
 To reference images from common theme resources in email templates, use `url.resourcesCommonUrl` which provides the full URL (including scheme and host) required by email clients:
 
 [source,html]
 ----
-<img src="${r"${url.resourcesCommonUrl}"}/img/logo.png" alt="My logo">
+<img src="${url.resourcesCommonUrl}/img/logo.png" alt="My logo">
 ----
 
 NOTE: Email clients require absolute URLs for images since they cannot resolve relative paths. Use `url.resourcesCommonUrl` or `url.resourcesUrl` instead of their `Path` counterparts (`url.resourcesCommonPath`, `url.resourcesPath`) in email templates.

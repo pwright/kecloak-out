@@ -1,0 +1,645 @@
+[id="admin-api-v2_{context}"]
+= Admin API v2: Reference
+
+
+ifeval::["true" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+== Prerequisites
+
+The Admin API v2 requires the `client-admin-api:v2` feature:
+
+[source,bash]
+----
+bin/kc.[sh|bat] start --features=client-admin-api:v2
+----
+
+== Client Setup
+
+=== Java
+
+Add the dependency to your project:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.keycloak</groupId>
+    <artifactId>keycloak-admin-client</artifactId>
+</dependency>
+----
+
+[source,java]
+----
+import org.keycloak.admin.client.Keycloak;
+
+Keycloak adminClient = Keycloak.getInstance("http://localhost:8080", "master", "admin", "password", "admin-cli");
+----
+
+=== JavaScript
+
+[source,bash]
+----
+npm install @keycloak/keycloak-admin-client
+----
+
+[source,javascript]
+----
+import KcAdminClient from "@keycloak/keycloak-admin-client";
+
+const kcAdminClient = new KcAdminClient({ baseUrl: "http://localhost:8080", enableExperimentalApis: true });
+await kcAdminClient.auth({ username: "admin", password: "admin", grantType: "password", clientId: "admin-cli" });
+----
+
+=== CLI
+
+The Admin API v2 uses the same CLI tool described in the {adminguide_link}#admin-cli[{adminguide_name}] with the `--v2` flag:
+
+[source,bash]
+----
+bin/kcadm.[sh|bat] --v2 config credentials --server http://localhost:8080 --realm master --user admin
+----
+
+== Available Resources
+
+For details on filtering and projection, see link:{links_admin-api_querying_url}[{links_admin-api_querying_name}].
+
+=== Clients
+
+==== Java Client Setup
+
+[source,java]
+----
+import org.keycloak.admin.api.client.ClientsApi;
+import org.keycloak.admin.api.AdminApi;
+
+AdminApi adminApi = adminClient.proxy(AdminApi.class);
+ClientsApi clientsApi = adminApi.clientsV2();
+----
+
+==== GET `/admin/api/\{realmName}/clients/v2`
+
+Get all clients
+
+Returns a list of clients in the realm, optionally filtered by a query expression. Results are paginated using offset (0-based, default 0) and limit (default 100).
+
+===== HTTP Request
+
+[source,http]
+----
+GET /admin/api/{realmName}/clients/v2 HTTP/1.1
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|===
+
+===== Query Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*fields* |Set of fields to include in the response. Must be top-level fields. If omitted or empty, all fields will be populated.
+|*limit* |Maximum number of results to return. Defaults to 100.
+|*offset* |Index of the first result to return, counted from 0. Defaults to 0.
+|*q* |Filter expression using SCIM-like syntax, e.g. clientId eq "my-app" and enabled eq true
+|*sort* |Sort expression. Comma-separated fields with optional direction per field using | (e.g. displayName|desc,clientId). Default direction is asc.
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*200*
+|
+array<<<OIDCClientRepresentation>>>, array<<<SAMLClientRepresentation>>>
+|OK
+|*400*
+|
+|Invalid sort parameter
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client list
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.getClients(params);
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().get();
+----
+
+==== POST `/admin/api/\{realmName}/clients/v2`
+
+Create a new client
+
+Creates a new client in the realm
+
+===== HTTP Request
+
+[source,http]
+----
+POST /admin/api/{realmName}/clients/v2 HTTP/1.1
+Content-Type: application/json
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|===
+
+===== Body Parameter
+
+[cols="1,1",options="header"]
+|===
+|Name |`protocol`
+|*<<OIDCClientRepresentation>>* +
+_required_ |`openid-connect`
+|*<<SAMLClientRepresentation>>* +
+_required_ |`saml`
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*201*
+|
+<<OIDCClientRepresentation>>, <<SAMLClientRepresentation>>
+|Created
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client create -f client.json
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.createClient(client);
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().post(requestBody);
+----
+
+==== GET `/admin/api/\{realmName}/clients/v2/\{id}`
+
+Get a client
+
+Returns a single client by its clientId
+
+===== HTTP Request
+
+[source,http]
+----
+GET /admin/api/{realmName}/clients/v2/{id} HTTP/1.1
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|*id* +
+_required_ |
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*200*
+|
+<<OIDCClientRepresentation>>, <<SAMLClientRepresentation>>
+|OK
+|*404*
+|
+|Not Found
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client get CLIENT_ID
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.client(id).getClient();
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().byId(id).get();
+----
+
+==== PUT `/admin/api/\{realmName}/clients/v2/\{id}`
+
+Create or update a client
+
+Creates or updates a client in the realm
+
+===== HTTP Request
+
+[source,http]
+----
+PUT /admin/api/{realmName}/clients/v2/{id} HTTP/1.1
+Content-Type: application/json
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|*id* +
+_required_ |
+|===
+
+===== Body Parameter
+
+[cols="1,1",options="header"]
+|===
+|Name |`protocol`
+|*<<OIDCClientRepresentation>>* +
+_required_ |`openid-connect`
+|*<<SAMLClientRepresentation>>* +
+_required_ |`saml`
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*200*
+|
+<<OIDCClientRepresentation>>, <<SAMLClientRepresentation>>
+|OK
+|*201*
+|
+<<OIDCClientRepresentation>>, <<SAMLClientRepresentation>>
+|Created
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client apply CLIENT_ID -f client.json
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.client(id).createOrUpdateClient(client);
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().byId(id).put(requestBody);
+----
+
+==== PATCH `/admin/api/\{realmName}/clients/v2/\{id}`
+
+Patch a client
+
+Partially updates a client using JSON Merge Patch
+
+===== HTTP Request
+
+[source,http]
+----
+PATCH /admin/api/{realmName}/clients/v2/{id} HTTP/1.1
+Content-Type: application/merge-patch+json
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|*id* +
+_required_ |
+|===
+
+===== Body Parameter
+
+A partial representation containing the fields to update. Required fields must always be included.
+
+[cols="1,1",options="header"]
+|===
+|Name |`protocol`
+|*<<OIDCClientRepresentation>>* +
+|`openid-connect`
+|*<<SAMLClientRepresentation>>* +
+|`saml`
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*200*
+|
+<<OIDCClientRepresentation>>, <<SAMLClientRepresentation>>
+|OK
+|*404*
+|
+|Not Found
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client patch CLIENT_ID -f client.json
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.client(id).patchClient(patch);
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().byId(id).patch(requestBody);
+----
+
+==== DELETE `/admin/api/\{realmName}/clients/v2/\{id}`
+
+Delete a client
+
+Deletes a client from the realm
+
+===== HTTP Request
+
+[source,http]
+----
+DELETE /admin/api/{realmName}/clients/v2/{id} HTTP/1.1
+----
+
+===== Path Parameters
+
+[cols="1,3",options="header"]
+|===
+|Name |Description
+|*realmName* +
+_required_ |
+|*id* +
+_required_ |
+|===
+
+===== Responses
+
+[cols="1,2,3",options="header"]
+|===
+|Code |Type |Description
+|*204*
+|
+|Client successfully deleted
+|*404*
+|
+|Not Found
+|===
+
+===== Examples
+
+*CLI*
+
+[source,bash]
+----
+kcadm.sh --v2 client delete CLIENT_ID
+----
+
+*Java*
+
+[source,java]
+----
+clientsApi.client(id).deleteClient();
+----
+
+*JavaScript*
+
+[source,javascript]
+----
+kcAdminClient.clients.v2().byId(id).delete();
+----
+
+
+== Models
+
+=== BaseClientRepresentation
+
+[cols="1,1,3",options="header"]
+|===
+|Name |Type |Description
+|*uuid* +
+_read-only_
+|string
+|UUID generated by the server. Validation: on update/on patch: uuid is server-managed and must not be user-specified
+|*clientId* +
+_required_
+|string
+|ID uniquely identifying this client. Validation: must not be blank; size must be between 1 and 255
+|*displayName*
+|string
+|Human readable name of the client. Validation: size must be between 0 and 255
+|*description*
+|string
+|Human readable description of the client. Validation: size must be between 0 and 255
+|*enabled*
+|boolean
+|Whether this client is enabled
+|*appUrl*
+|string
+|URL to the application's homepage that is represented by this client. Validation: size must be between 0 and 255; must be a valid URL
+|*redirectUris*
+|array<string>
+|URIs that the browser can redirect to after login. Validation: size must be between 0 and 100; each element must not be blank, size must be between 0 and 255; Invalid redirect URI
+|*roles*
+|array<string>
+|Roles associated with this client. Validation: size must be between 0 and 300; each element must not be blank, size must be between 0 and 255
+|*protocol*
+|string
+|Discriminator. Allowed values: `openid-connect`, `saml`
+|*createdTimestamp* +
+_read-only_
+|integer
+|Timestamp when the client was created
+|*updatedTimestamp* +
+_read-only_
+|integer
+|Timestamp when the client was last updated
+|===
+
+=== OIDCClientRepresentation
+
+Extends <<BaseClientRepresentation>>.
+
+[cols="1,1,3",options="header"]
+|===
+|Name |Type |Description
+|*loginFlows*
+|array<<<Flow>>>
+|Login flows that are enabled for this client. Validation: SERVICE_ACCOUNT and TOKEN_EXCHANGE flows require a confidential client (auth must be specified); STANDARD and IMPLICIT flows require at least one redirect URI
+|*auth*
+|<<Auth>>
+|Authentication configuration for this client
+|*webOrigins*
+|array<string>
+|Web origins that are allowed to make requests to this client. Validation: size must be between 0 and 100; each element must not be blank, size must be between 0 and 255, must be a valid web origin (scheme://host[:port]), or '+' to derive from redirect URIs, or '*' to allow all
+|*serviceAccountRoles*
+|array<string>
+|Roles assigned to the service account. Validation: size must be between 0 and 300; each element must not be blank, size must be between 0 and 255; serviceAccountRoles can only be set when SERVICE_ACCOUNT flow is enabled
+|*protocol*
+|string
+|Fixed value: `openid-connect`
+|===
+
+=== Flow
+
+Enum values: `STANDARD`, `IMPLICIT`, `DIRECT_GRANT`, `SERVICE_ACCOUNT`, `TOKEN_EXCHANGE`, `DEVICE`, `CIBA`
+
+=== Auth
+
+[cols="1,1,3",options="header"]
+|===
+|Name |Type |Description
+|*method* +
+_required_
+|string
+|Client authentication method (e.g. `client-secret`, `client-secret-jwt`). Validation: must not be blank; valid client authenticator type is required
+|*secret*
+|string
+|Secret used to authenticate this client with Secret authentication. Validation: size must be between 6 and 255; on update: Client secret must not be blank
+|*certificate*
+|string
+|Public key used to authenticate this client with Signed JWT authentication. Validation: size must be between 0 and 65536
+|===
+
+=== SAMLClientRepresentation
+
+Extends <<BaseClientRepresentation>>.
+
+[cols="1,1,3",options="header"]
+|===
+|Name |Type |Description
+|*nameIdFormat*
+|<<NameIdFormat>>
+|Name ID format to use for the subject
+|*forceNameIdFormat*
+|boolean
+|Force the specified Name ID format even if the client requests a different one
+|*includeAuthnStatement*
+|boolean
+|Include AuthnStatement in the SAML response
+|*signDocuments*
+|boolean
+|Sign SAML documents on the server side
+|*signAssertions*
+|boolean
+|Sign SAML assertions
+|*clientSignatureRequired*
+|boolean
+|Require client to sign SAML requests
+|*forcePostBinding*
+|boolean
+|Force POST binding for SAML responses
+|*frontChannelLogout*
+|boolean
+|Use front-channel logout (browser redirect)
+|*signatureAlgorithm*
+|<<SignatureAlgorithm>>
+|Signature algorithm for signing SAML documents
+|*signatureCanonicalizationMethod*
+|string
+|Canonicalization method for XML signatures. Validation: must be a valid XML canonicalization method URI (see javax.xml.crypto.dsig.CanonicalizationMethod constants)
+|*signingCertificate*
+|string
+|X.509 certificate for signing (PEM format, without headers). Validation: size must be between 0 and 65536
+|*allowEcpFlow*
+|boolean
+|Allow ECP (Enhanced Client or Proxy) flow
+|*protocol*
+|string
+|Fixed value: `saml`
+|===
+
+=== NameIdFormat
+
+Enum values: `username`, `email`, `persistent`, `transient`
+
+=== SignatureAlgorithm
+
+Enum values: `RSA_SHA1`, `RSA_SHA256`, `RSA_SHA256_MGF1`, `RSA_SHA512`, `RSA_SHA512_MGF1`, `DSA_SHA1`
+
+
+

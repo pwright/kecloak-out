@@ -1,0 +1,53 @@
+[id="getting-started-docker_{context}"]
+= Docker
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+:containerCommand: docker
+
+:links-local: true
+:links-admin-console: http://localhost:8080/admin[{project_name} Admin Console]
+:links-account-console: http://localhost:8080/realms/myrealm/account[{project_name} Account Console]
+
+== Before you start
+
+include::templates/hw-requirements.adoc[]
+
+Make sure you have Docker installed.
+
+
+== Start {project_name}
+
+From a terminal, enter the following command to start {project_name}:
+
+[source,bash,subs="attributes+"]
+----
+{containerCommand} run -p 127.0.0.1:8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:{version} start-dev
+----
+
+This command starts {project_name} exposed on the local port 8080 and creates an initial admin user with the username `admin`
+and password `admin`.
+
+ifeval::[{project_product} != true]
+Container images are published at https://quay.io/repository/keycloak/keycloak?tab=tags[Keycloak's Quay.io organization].
+endif::[]
+
+include::templates/realm-config.adoc[]
+
+include::templates/login-to-account.adoc[]
+
+include::templates/first-app.adoc[]
+
+include::templates/next.adoc[]
+
+

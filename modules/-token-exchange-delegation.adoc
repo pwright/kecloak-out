@@ -2,7 +2,25 @@
 = Token exchange delegation
 
 
-<@features.techpreview feature="token-exchange-delegation"/>
+
+[NOTE]
+====
+Token Exchange Delegation is
+ifeval::[{project_product}==true]
+*Technology Preview*
+endif::[]
+ifeval::[{project_community}==true]
+*Preview*
+endif::[]
+and is not fully supported. This feature is disabled by default.
+
+ifeval::[{project_community}==true]
+
+endif::[]
+
+To enable start the server with `--features=preview` or `--features=token-exchange-delegation`
+
+====
 
 Token exchange delegation allows a subject (a user) to pre-authorize an actor (an administrator or a client application) to act on their behalf, as described in the https://datatracker.ietf.org/doc/html/rfc8693#name-delegation-vs-impersonation[delegation semantics of the token exchange specification].
 

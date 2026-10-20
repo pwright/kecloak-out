@@ -1,0 +1,45 @@
+[id="getting-started-zip_{context}"]
+= OpenJDK
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+:links-local: true
+:links-admin-console: http://localhost:8080/admin[{project_name} Admin Console]
+:links-account-console: http://localhost:8080/realms/myrealm/account[{project_name} Account Console]
+
+== Before you start
+
+include::templates/hw-requirements.adoc[]
+
+Make sure you have https://openjdk.java.net/[OpenJDK {jdk_version_latest}] installed.
+
+== Download {project_name}
+
+Download and extract {archivedownloadurl}[{archivebasename}-{version}.zip]
+from the {project_name} website.
+
+After extracting this file, you should have a directory that is named `{archivebasename}-{version}`.
+
+include::templates/start-keycloak-localhost.adoc[]
+
+include::templates/create-admin-localhost.adoc[]
+
+include::templates/realm-config.adoc[]
+
+include::templates/login-to-account.adoc[]
+
+include::templates/first-app.adoc[]
+
+include::templates/next.adoc[]
+
+

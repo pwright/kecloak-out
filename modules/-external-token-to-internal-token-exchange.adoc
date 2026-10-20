@@ -19,7 +19,7 @@ These types of changes required a configured identity provider in the Admin Cons
 
 NOTE:  SAML identity providers are not supported at this time.  Twitter tokens cannot be exchanged either.
 
-NOTE: A combination of <<_standard-token-exchange,Standard Token Exchange V2>> and <@links.securingapps id="jwt-authorization-grant" /> is recommended instead of the legacy external to internal Token Exchange. See <@links.securingapps id="oauth-identity-authorization-chaining-across-domains" /> for more information about how those two supported features can be used to substitute the legacy Token Exchange.
+NOTE: A combination of <<_standard-token-exchange,Standard Token Exchange V2>> and link:{links_securing-apps_jwt-authorization-grant_url}[{links_securing-apps_jwt-authorization-grant_name}] is recommended instead of the legacy external to internal Token Exchange. See link:{links_securing-apps_oauth-identity-authorization-chaining-across-domains_url}[{links_securing-apps_oauth-identity-authorization-chaining-across-domains_name}] for more information about how those two supported features can be used to substitute the legacy Token Exchange.
 
 
 **Granting permission for the exchange**
@@ -230,5 +230,3 @@ Direct naked exchanges are quite dangerous.  You are putting a lot of trust in t
 its client credentials.  If those credentials are leaked, then the thief can impersonate anybody in your system.  This is in direct
 contrast to confidential clients that have existing tokens.  You have two factors of authentication, the access token and the client
 credentials, and you're only dealing with one user.  So use direct naked exchanges sparingly.
-
-</@tmpl.guide>

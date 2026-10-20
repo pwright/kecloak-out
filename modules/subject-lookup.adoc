@@ -130,4 +130,4 @@ For example, a policy could use the request context to enforce time-based or loc
 
 Subject properties specified in `subject.properties` are also merged into the subject's identity attributes for policy evaluation.
 
-</@tmpl.guide>
+

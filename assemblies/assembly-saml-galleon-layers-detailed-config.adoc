@@ -1,0 +1,32 @@
+[id="saml-galleon-layers-detailed-config_{context}"]
+= {project_name} SAML Galleon feature pack detailed configuration
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+This {section} contains the detailed list of elements for the `keycloak-saml.xml` configuration file used by the {project_name} SAML Galleon feature pack.
+
+include::partials/saml/sp_element.adoc[]
+include::partials/saml/sp-keys.adoc[]
+include::partials/saml/sp-keys/keystore_element.adoc[]
+include::partials/saml/sp-keys/key_pems.adoc[]
+include::partials/saml/sp_principalname_mapping_element.adoc[]
+include::partials/saml/roleidentifiers_element.adoc[]
+include::partials/saml/sp_role_mappings_provider_element.adoc[]
+include::partials/saml/idp_element.adoc[]
+include::partials/saml/idp_allowedclockskew_subelement.adoc[]
+include::partials/saml/idp_singlesignonservice_subelement.adoc[]
+include::partials/saml/idp_singlelogoutservice_subelement.adoc[]
+include::partials/saml/idp_keys_subelement.adoc[]
+include::partials/saml/idp_httpclient_subelement.adoc[]
+
+

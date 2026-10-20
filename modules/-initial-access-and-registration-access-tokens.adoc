@@ -40,7 +40,7 @@ When using an Initial Access Token, the server response includes a newly issued 
 
 The Client Registration CLI automatically uses its private configuration file to save and use this token with its associated client. As long as the same configuration file is used for all client operations, the developer does not need to authenticate to read, update, or delete a client that was created this way.
 
-See <@links.securingapps id="client-registration" anchor="_authentication" /> for more information about Initial Access and Registration Access Tokens.
+See link:{links_securing-apps_client-registration_url}#_authentication[{links_securing-apps_client-registration_name}] for more information about Initial Access and Registration Access Tokens.
 
 Run the [command]`kcreg config initial-token --help` and [command]`kcreg config registration-token --help` commands for more information on how to configure tokens with the Client Registration CLI.
 

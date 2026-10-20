@@ -18,7 +18,7 @@ Add the full admin URL with its hostname and the port (if it is a non-standard p
 ====
 Setting `hostname-admin` only changes the URLs {project_name} generates for the Admin Console and Admin API.
 It does not stop the Admin API from also answering on the public frontend URL — restricting administration access to the dedicated port must be enforced at the reverse proxy, which is what the rules below do.
-See the <@links.server id="hostname"/> {section}.
+See the link:{links_server_hostname_url}[{links_server_hostname_name}] {section}.
 ====
 
 

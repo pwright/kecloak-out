@@ -14,7 +14,10 @@ When HTTP access logs are enabled, they are shown by default, as `INFO` level is
 
 You can enable HTTP access logging by using `http-access-log-enabled` property as follows:
 
-<@kc.start parameters="--http-access-log-enabled=true"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-enabled=true
+----
 
 
 **Change log format/pattern**
@@ -22,7 +25,10 @@ You can enable HTTP access logging by using `http-access-log-enabled` property a
 
 You can change format/pattern of the access log records by using `http-access-log-pattern` property as follows:
 
-<@kc.start parameters="--http-access-log-pattern=combined"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-pattern=combined
+----
 
 Predefined named patterns:
 
@@ -32,7 +38,10 @@ Predefined named patterns:
 
 You can even specify your own pattern with your required data to be logged, such as:
 
-<@kc.start parameters="--http-access-log-pattern='%A %{METHOD} %{REQUEST_URL} %{i,User-Agent}'"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-pattern='%A %{METHOD} %{REQUEST_URL} %{i,User-Agent}'
+----
 
 WARNING: HTTP Access logs may contain sensitive HTTP headers like `Authorization`, `Cookie`, or external API keys references.
 The `Authorization` header and selected sensitive cookies are automatically masked in the HTTP Access log. However, the list of masked items might not be complete. Be careful with using the `long` pattern or printing the headers by the custom format - you should use it only for development purposes. To extend the list of the masked items, see below.
@@ -61,7 +70,10 @@ Masked sensitive {project_name} cookies:
 
 In order to extend the list of the masked items (e.g. to accommodate for headers and cookies used by your custom extensions), configure the `http-access-log-masked-headers` and `http-access-log-masked-cookies` options.
 
-<@kc.start parameters="--http-access-log-enabled=true --http-access-log-masked-headers=X-Custom,Y-Api-Token --http-access-log-masked-cookies=MY_COOKIE,MY_SECOND_COOKIE"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-enabled=true --http-access-log-masked-headers=X-Custom,Y-Api-Token --http-access-log-masked-cookies=MY_COOKIE,MY_SECOND_COOKIE
+----
 
 
 **Exclude specific URL paths**
@@ -71,7 +83,10 @@ It is possible to exclude specific URL paths from the HTTP access logging, so th
 
 You can use regular expressions to exclude them, such as:
 
-<@kc.start parameters="--http-access-log-exclude='/realms/my-internal-realm/.*'"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-exclude='/realms/my-internal-realm/.*'
+----
 
 In this case, all calls to the `/realms/my-internal-realm/` and subsequent paths will be excluded from the HTTP Access log.
 
@@ -89,7 +104,10 @@ When file logging is enabled, HTTP access logs are not written to the console.
 
 You can enable file logging as follows:
 
-<@kc.start parameters="--http-access-log-enabled=true --http-access-log-file-enabled=true"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-enabled=true --http-access-log-file-enabled=true
+----
 
 This automatically creates a file called `keycloak-http-access.log` in the `/data/log` directory of your distribution.
 
@@ -102,7 +120,10 @@ To change the file suffix (`.log` is the default), use the `http-access-log-file
 
 For example, to write HTTP access logs to the file `my-http-logs.txt`:
 
-<@kc.start parameters="--http-access-log-enabled=true --http-access-log-file-enabled=true --http-access-log-file-name=my-http-logs --http-access-log-file-suffix=txt"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-enabled=true --http-access-log-file-enabled=true --http-access-log-file-name=my-http-logs --http-access-log-file-suffix=txt
+----
 
 
 **File rotation**
@@ -114,5 +135,8 @@ When the daily rotation occurs, a date-based suffix '.+{yyyy-MM-dd}+' is added t
 
 To disable rotation, use the following configuration:
 
-<@kc.start parameters="--http-access-log-enabled=true --http-access-log-file-enabled=true --http-access-log-file-rotate=false"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --http-access-log-enabled=true --http-access-log-file-enabled=true --http-access-log-file-rotate=false
+----
 

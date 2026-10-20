@@ -45,15 +45,13 @@ For a list of templates in other theme types look at the `theme/base/<THEME_TYPE
 +
 For example, to create a custom login form for the `mytheme` theme, copy `themes/base/login/login.ftl` to `themes/mytheme/login` and open it in an editor.
 +
-After the first line (`+<#noparse><#import ...></#noparse>+`), add `<h1>HELLO WORLD!</h1>` as shown here:
+After the first line (`+<#import ...>+`), add `<h1>HELLO WORLD!</h1>` as shown here:
 +
 [source,html]
 ----
-<#noparse>
 <#import "template.ftl" as layout>
 <h1>HELLO WORLD!</h1>
 ...
-</#noparse>
 ----
 
 . Back up the modified template. When upgrading to a new version of {project_name} you may need to update your custom templates to apply changes to the original template if applicable.
@@ -138,7 +136,7 @@ If enabled, the dark variant of the theme will be applied based on user preferen
 == Additional resources for Themes
 * For more inspiration, see <<_default-themes,Default Themes>> bundled inside {project_name}.
 * {quickstartRepo_link}[{quickstartRepo_name}] - Directory `extension` of the quickstarts repository contains some theme examples, which can be also used as an inspiration.
-</@tmpl.guide>
+
 
 == Theme SPIs
 

@@ -4,7 +4,10 @@
 
 With TLS re-encrypt, {project_name} requires the following configuration:
 
-<@kc.start parameters="--proxy-headers xforwarded --health-enabled true --metrics-enabled true --https-certificate-file=/path/to/certificate --https-certificate-key-file=/path/to/key --https-client-auth=required --https-trust-store-file=/path/to/https-truststore --https-management-client-auth=none"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --proxy-headers xforwarded --health-enabled true --metrics-enabled true --https-certificate-file=/path/to/certificate --https-certificate-key-file=/path/to/key --https-client-auth=required --https-trust-store-file=/path/to/https-truststore --https-management-client-auth=none
+----
 
 `--proxy-headers xforwarded`::
 Instructs {project_name} to read the client IP address and protocol from the `X-Forwarded-*` headers set by Traefik.
@@ -22,7 +25,7 @@ Enabling metrics also enables an additional status check for the database, so it
 
 `--https-certificate-file=/path/to/certificate` and `--https-certificate-key-file=/path/to/key`::
 Configure the certificate and the private key {project_name} will use for HTTPS.
-See the <@links.server id="enabletls"/> guide for additional details.
+See the link:{links_server_enabletls_url}[{links_server_enabletls_name}] guide for additional details.
 
 `--https-client-auth=required`::
 Configures {project_name} to require client authentication, for mutual TLS.
@@ -30,7 +33,7 @@ Configures {project_name} to require client authentication, for mutual TLS.
 `--https-trust-store-file=/path/to/https-truststore`::
 Configures a truststore for client authentication.
 In this case the truststore should contain the public certificate of the Traefik proxy.
-See the <@links.server id="mutual-tls"/> guide for additional details.
+See the link:{links_server_mutual-tls_url}[{links_server_mutual-tls_name}] guide for additional details.
 
 `--https-management-client-auth=none`::
 Disables the client authentication requirement for the management endpoint.
@@ -44,11 +47,17 @@ The mTLS configuration above secures the connection between Traefik and {project
 To additionally use a certificate that an end user presents to Traefik for X.509 authentication, {project_name} must read the certificate that the `pass-client-cert` middleware forwards in the `X-Forwarded-Tls-Client-Cert` header.
 Enable the `traefik` client certificate lookup provider when starting {project_name}:
 
-<@kc.start parameters="--spi-x509cert-lookup--provider=traefik"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --spi-x509cert-lookup--provider=traefik
+----
 
 The `traefik` provider reads the client certificate and any intermediate CA certificates from the `X-Forwarded-Tls-Client-Cert` header, so no header names need to be configured.
 If your certificate chain contains more intermediate certificates than the default, set the `certificate-chain-length` option accordingly.
 Otherwise, the provider discards the request:
 
-<@kc.start parameters="--spi-x509cert-lookup--provider=traefik --spi-x509cert-lookup--traefik--certificate-chain-length=2"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --spi-x509cert-lookup--provider=traefik --spi-x509cert-lookup--traefik--certificate-chain-length=2
+----
 

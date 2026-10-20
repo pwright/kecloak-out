@@ -7,7 +7,10 @@ You can enable additional context information for each log line like the current
 Use the option `log-mdc-enabled` to enable it.
 
 .Example configuration
-<@kc.start parameters="--log-mdc-enabled=true"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --log-mdc-enabled=true
+----
 
 .Example output
 ----

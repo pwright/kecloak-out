@@ -115,15 +115,24 @@ Calculation:
 
 For production with TLS passthrough:
 
-<@kc.start parameters="--shutdown-delay=30s" />
+[source,bash]
+----
+bin/kc.[sh|bat] start --shutdown-delay=30s
+----
 
 For load balancers that poll readiness:
 
-<@kc.start parameters="--shutdown-delay=16s"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --shutdown-delay=16s
+----
 
 For test environments:
 
-<@kc.start parameters="--shutdown-delay=0s --shutdown-timeout=500ms"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --shutdown-delay=0s --shutdown-timeout=500ms
+----
 
 [NOTE]
 ====
@@ -131,4 +140,184 @@ The shutdown delay affects the minimum time required for a complete server resta
 In Kubernetes environments, ensure your `terminationGracePeriodSeconds` is longer than the sum of `shutdown-delay` and `shutdown-timeout` to prevent forced termination.
 ====
 
-</@tmpl.guide>
+
+== Relevant options
+
+[cols="12a,2,2",role="options"]
+|===
+| |_Type_ or Values |Default
+
+|
+[.options-key]#`+hostname+`# 
+
+[.options-description]#Address at which is the server exposed.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#Can be a full URL, or just a hostname. When only hostname is provided, scheme, port and context path are resolved from the request.#
+
+
+
+*CLI:* `+--hostname+` +
+*Env:* `+KC_HOSTNAME+`
+--
+
+Available only when hostname:v2 feature is enabled
+
+
+|_String_
+
+|
+|
+[.options-key]#`+hostname-admin+`# 
+
+[.options-description]#Address for accessing the administration console.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#Use this option if you are exposing the administration console using a reverse proxy on a different address than specified in the `hostname` option.#
+
+
+
+*CLI:* `+--hostname-admin+` +
+*Env:* `+KC_HOSTNAME_ADMIN+`
+--
+
+Available only when hostname:v2 feature is enabled
+
+
+|_String_
+
+|
+|
+[.options-key]#`+http-relative-path+`# [.none]#icon:tools[role=options-build]#
+
+[.options-description]#Set the path relative to `/` for serving resources.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#The path must start with a `/`.#
+
+
+
+*CLI:* `+--http-relative-path+` +
+*Env:* `+KC_HTTP_RELATIVE_PATH+`
+--
+
+
+
+|_String_
+
+|
+`+/+`
+
+|
+[.options-key]#`+shutdown-delay+`# 
+
+[.options-description]#Length of the pre-shutdown phase during which the server prepares for shutdown.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#May be an ISO 8601 duration value, an integer number of seconds, or an integer followed by one of [ms, h, m, s, d]. This period allows for loadbalancer reconfiguration and draining of TLS/HTTP keepalive connections.#
+
+
+
+*CLI:* `+--shutdown-delay+` +
+*Env:* `+KC_SHUTDOWN_DELAY+`
+--
+
+
+
+|_String_
+
+|
+`+1s+`
+
+|
+[.options-key]#`+shutdown-timeout+`# 
+
+[.options-description]#The shutdown period waiting for currently running HTTP requests to finish and distributed caches to settle.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#May be an ISO 8601 duration value, an integer number of seconds, or an integer followed by one of [ms, h, m, s, d].#
+
+
+
+*CLI:* `+--shutdown-timeout+` +
+*Env:* `+KC_SHUTDOWN_TIMEOUT+`
+--
+
+
+
+|_String_
+
+|
+`+10s+`
+
+|
+[.options-key]#`+proxy-headers+`# 
+
+[.options-description]#The proxy headers that should be accepted by the server.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#Misconfiguration might leave the server exposed to security vulnerabilities. Takes precedence over the deprecated proxy option.#
+
+
+
+*CLI:* `+--proxy-headers+` +
+*Env:* `+KC_PROXY_HEADERS+`
+--
+
+
+
+|
+`+forwarded+`, `+xforwarded+`
+
+|
+|
+[.options-key]#`+proxy-protocol-enabled+`# 
+
+[.options-description]#Whether the server should use the HA PROXY protocol when serving requests from behind a proxy.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#When set to true, the remote address returned will be the one from the actual connecting client. Cannot be enabled when the `proxy-headers` is used.#
+
+
+
+*CLI:* `+--proxy-protocol-enabled+` +
+*Env:* `+KC_PROXY_PROTOCOL_ENABLED+`
+--
+
+
+
+|
+`+true+`, `+false+`
+
+|
+`+false+`
+
+|
+[.options-key]#`+proxy-trusted-addresses+`# 
+
+[.options-description]#A comma separated list of trusted proxy addresses.#
+
+[role="options-extended"]
+--
+[.options-description-extended]#If set, then proxy headers from other addresses will be ignored. By default all addresses are trusted. A trusted proxy address is specified as an IP address (IPv4 or IPv6), hostname, or Classless Inter-Domain Routing (CIDR) notation. IPv6 addresses should use square brackets (e.g. [::1]). An optional port can be specified (e.g. 127.0.0.1:8084). Using hostnames is not recommended as it requires a DNS lookup on every request. Available only when proxy-headers is set.#
+
+
+
+*CLI:* `+--proxy-trusted-addresses+` +
+*Env:* `+KC_PROXY_TRUSTED_ADDRESSES+`
+--
+
+
+
+|_List_
+
+|
+
+|===

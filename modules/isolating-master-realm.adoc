@@ -7,7 +7,7 @@ The following description assumes {project_name}'s default settings and that thi
 
 To do that, do not expose the path `/realms/master/` to the public internet.
 
-Depending on your topology, you can combine this with serving the Admin UI and Admin API on a dedicated hostname and port. See <@links.server id="hostname" anchor="administration-console-on-a-separate-hostname" /> for details.
+Depending on your topology, you can combine this with serving the Admin UI and Admin API on a dedicated hostname and port. See link:{links_server_hostname_url}#administration-console-on-a-separate-hostname[{links_server_hostname_name}] for details.
 
 
 **Different context path on reverse proxy**
@@ -20,7 +20,7 @@ If the proxy uses a different context path than {project_name}, one of the follo
 * Use a full URL for the `hostname` option including the proxy context path, for example using `--hostname=https://my.keycloak.org/auth` if {project_name} is exposed through the reverse proxy on `/auth`.
 * Change the context path of {project_name} itself to match the context path for the reverse proxy using the `http-relative-path` option.
 
-For more details on exposing {project_name} on a different hostname or context path, including the Administration REST API and Console, see <@links.server id="hostname"/>.
+For more details on exposing {project_name} on a different hostname or context path, including the Administration REST API and Console, see link:{links_server_hostname_url}[{links_server_hostname_name}].
 
 
 **Sticky sessions**
@@ -37,7 +37,10 @@ The recommendation is to aim for an even distribution of load across {project_na
 The options `+spi-sticky-session-encoder--infinispan--should-attach-route+` and `+spi-sticky-session-encoder--remote--should-attach-route+` are deprecated since {project_name} 26.8 and will be removed in a future release.
 To suppress the deprecation warning at startup, set those SPI options to `false`:
 
-<@kc.start parameters="--spi-sticky-session-encoder--infinispan--should-attach-route=false"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --spi-sticky-session-encoder--infinispan--should-attach-route=false
+----
 
 
 **Enabling client certificate lookup**
@@ -90,10 +93,16 @@ The server supports some of the most common TLS termination proxies:
 To configure how client certificates are retrieved from the requests, you need to:
 
 .Enable the corresponding proxy provider
-<@kc.build parameters="--spi-x509cert-lookup--provider=<provider>"/>
+[source,bash]
+----
+bin/kc.[sh|bat] build --spi-x509cert-lookup--provider=<provider>
+----
 
 .Configure the HTTP headers
-<@kc.start parameters="--spi-x509cert-lookup--<provider>--ssl-client-cert=SSL_CLIENT_CERT --spi-x509cert-lookup--<provider>--ssl-cert-chain-prefix=CERT_CHAIN --spi-x509cert-lookup--<provider>-certificate-chain-length=10"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --spi-x509cert-lookup--<provider>--ssl-client-cert=SSL_CLIENT_CERT --spi-x509cert-lookup--<provider>--ssl-cert-chain-prefix=CERT_CHAIN --spi-x509cert-lookup--<provider>-certificate-chain-length=10
+----
 
 When configuring the HTTP headers, you need to make sure the values you are using correspond to the names of the headers
 forwarded by the proxy with the client certificate information.
@@ -164,7 +173,10 @@ http-request set-header Client-Cert-Chain %[ssl_c_chain_der,base64] if { ssl_c_u
 
 Corresponding {project_name} configuration:
 
-<@kc.start parameters="--spi-x509cert-lookup--provider=haproxy --spi-x509cert-lookup--haproxy--ssl-client-cert=Client-Cert --spi-x509cert-lookup--haproxy--ssl-cert-chain=Client-Cert-Chain --spi-x509cert-lookup--haproxy--certificate-chain-length=2"/>
+[source,bash]
+----
+bin/kc.[sh|bat] start --spi-x509cert-lookup--provider=haproxy --spi-x509cert-lookup--haproxy--ssl-client-cert=Client-Cert --spi-x509cert-lookup--haproxy--ssl-cert-chain=Client-Cert-Chain --spi-x509cert-lookup--haproxy--certificate-chain-length=2
+----
 
 If the number of intermediate certificates in your certificate chain is longer than the default, you must set the
 `certificate-chain-length` option to an appropriate value. Otherwise, the provider will discard the request.
@@ -175,7 +187,7 @@ If the number of intermediate certificates in your certificate chain is longer t
 
 The NGINX SSL/TLS module does not expose the client certificate chain. {project_name}'s NGINX certificate lookup provider rebuilds it by using the {project_name} truststore.
 
-If you are using this provider, see <@links.server id="keycloak-truststore"/> for how
+If you are using this provider, see link:{links_server_keycloak-truststore_url}[{links_server_keycloak-truststore_name}] for how
 to configure a {project_name} Truststore. The options and defaults specific to `nginx` are as follows:
 
 [%autowidth]
@@ -238,6 +250,6 @@ You do not need to configure additional options for the `envoy` provider.
 **Blueprints**
 
 
-* <@links.server id="haproxy-reencrypt"/>
-* <@links.server id="traefik-reencrypt"/>
+* link:{links_server_haproxy-reencrypt_url}[{links_server_haproxy-reencrypt_name}]
+* link:{links_server_traefik-reencrypt_url}[{links_server_traefik-reencrypt_name}]
 

@@ -1,0 +1,44 @@
+[id="directory-structure_{context}"]
+= Directory Structure
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+== Installation Locations
+
+If you are installing from a zip file then by default there will be an install root directory of `{archivebasename}-{version}`, which can be created anywhere you choose on your filesystem.
+
+ifeval::[{project_product} != true]
+`/opt/keycloak` is the root install location for the server in all containerized usage shown for {project_name} including link:{links_server_containers_url}[{links_server_containers_name}], link:{links_getting-started_getting-started-docker_url}[{links_getting-started_getting-started-docker_name}], link:{links_getting-started_getting-started-podman_url}[{links_getting-started_getting-started-podman_name}], link:{links_getting-started_getting-started-kube_url}[{links_getting-started_getting-started-kube_name}], and link:{links_getting-started_getting-started-openshift_url}[{links_getting-started_getting-started-openshift_name}].
+endif::[]
+
+ifeval::[{project_product} == true]
+`/opt/keycloak` is the root install location for the server in all containerized usage shown for {project_name}.
+endif::[]
+
+NOTE: In the rest of the documentation, relative paths are understood to be relative to the install root - for example, `conf/file.xml` means `<install root>/conf/file.xml`
+
+== Directory Structure
+
+Under the {project_name} install root there exists a number of folders:
+
+* *bin/* - contains all the shell scripts for the server, including `kc.sh|bat`, `kcadm.sh|bat`, and `kcreg.sh|bat`
+** *client/* - used internally
+* *conf/* - directory used for configuration files, including `keycloak.conf` - see link:{links_server_configuration_url}[{links_server_configuration_name}]. Many options for specifying a configuration file expect paths relative to this directory.
+** *truststores/* - default path used by the `truststore-paths` option - see link:{links_server_keycloak-truststore_url}[{links_server_keycloak-truststore_name}]
+* *data/* - directory for the server to store runtime information, such as transaction logs
+** *logs/* - default directory for file logging - see link:{links_server_logging_url}[{links_server_logging_name}]
+* *lib/* - used internally
+* *providers/* - directory for user provided dependencies - see link:{links_server_configuration-provider_url}[{links_server_configuration-provider_name}] for extending the server and link:{links_server_db_url}[{links_server_db_name}] for an example of adding a JDBC driver.
+* *themes/* - directory for customizations to the Admin Console, Account Console, and login page - see the link:{links_ui-customization_themes_url}[{links_ui-customization_themes_name}] {section}.
+
+

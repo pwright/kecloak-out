@@ -29,11 +29,13 @@ sanitize() {
     after="$(echo "$after" | sed -E "s/(KC_DB_PASSWORD|KCRAW_DB_PASSWORD|KC_BOOTSTRAP_ADMIN_PASSWORD)='[^']+'/\1='EXAMPLE_PASSWORD'/g")"
     after="$(echo "$after" | sed -E "s/(KC_DB_PASSWORD|KCRAW_DB_PASSWORD|KC_BOOTSTRAP_ADMIN_PASSWORD)=_<[^>]+>_/\1=EXAMPLE_PASSWORD/g")"
 
-    # db-password=change_me and similar config file values
-    after="$(echo "$after" | sed -E 's/(db-password|db-mtls-key-store-password)=([A-Za-z0-9_]+)/\1=EXAMPLE_PASSWORD/g')"
+    # CLI --*-password=value patterns (keystore, db, service, etc)
+    after="$(echo "$after" | sed -E 's/(config-keystore-password|https-key-store-password|service-password|db-password|db-mtls-key-store-password)="[^"]+"/\1=EXAMPLE_PASSWORD/g')"
+    after="$(echo "$after" | sed -E "s/(config-keystore-password|https-key-store-password|service-password|db-password|db-mtls-key-store-password)='[^']+'/\1=EXAMPLE_PASSWORD/g")"
+    after="$(echo "$after" | sed -E 's/(config-keystore-password|https-key-store-password|service-password|db-password|db-mtls-key-store-password)=([^ '"'"'"]+)/\1=EXAMPLE_PASSWORD/g')"
 
-    # client_secret=XXXXX or client_secret=ZZZZZZ etc
-    after="$(echo "$after" | sed -E 's/(client_secret=)[A-Z]{3,}/\1EXAMPLE_SECRET/g')"
+    # client_secret=XXXXX or client_secret=ZZZZZZ or client_secret=UUID etc
+    after="$(echo "$after" | sed -E 's/(client_secret=)[A-Za-z0-9_-]{3,}/\1EXAMPLE_SECRET/g')"
 
     # -d "client_secret=the client secret"
     after="$(echo "$after" | sed -E 's/(client_secret=)the client secret/\1EXAMPLE_SECRET/g')"

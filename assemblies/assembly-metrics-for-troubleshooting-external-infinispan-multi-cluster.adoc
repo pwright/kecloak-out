@@ -1,0 +1,42 @@
+[id="metrics-for-troubleshooting-external-infinispan-multi-cluster_{context}"]
+= External {jdgserver_name} metrics
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+:jgrp_application: {jdgserver_name}
+:clustered_caches: true
+:external_infinispan: true
+
+This is part of the link:{links_observability_metrics-for-troubleshooting_url}[{links_observability_metrics-for-troubleshooting_name}] {section}.
+
+== Prerequisites
+
+include::partials/ispn_enable_metrics.adoc[leveloffset=+2]
+
+== Clustering and Network
+
+This section describes metrics that are useful for monitoring the communication between {jdgserver_name} nodes to identify possible network issues.
+
+include::partials/jgrp_metrics.adoc[leveloffset=+1]
+
+== {jdgserver_name} Caches
+
+The metrics in this section help monitoring the {jdgserver_name} caches health and the cluster replication.
+
+include::partials/ispn_metrics.adoc[leveloffset=+1]
+
+== Next steps
+
+Return back to the link:{links_observability_metrics-for-troubleshooting_url}[{links_observability_metrics-for-troubleshooting_name}].
+
+

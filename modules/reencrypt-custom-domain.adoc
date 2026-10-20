@@ -109,7 +109,7 @@ WARNING: When using the `proxy.headers` field, make sure your Ingress properly s
 either reencrypt or edge TLS termination as passthrough TLS doesn't allow the Ingress to modify the requests headers.
 Misconfiguration will leave {project_name} exposed to security vulnerabilities.
 
-For more details refer to the <@links.server id="reverseproxy"/> guide.
+For more details refer to the link:{links_server_reverseproxy_url}[{links_server_reverseproxy_name}] guide.
 
 
 **Accessing the Admin Console**
@@ -147,4 +147,4 @@ Setting the Keycloak CR image requires a high degree of trust as whatever image 
 
 Similarly, the unsupported `podTemplate` gives the ability to deploy alternative workloads and requires a high degree of trust. In a single-namespace operator deployment those workloads may be granted the same permissions as the operator itself - which includes the ability to access Secrets in the namespace.
 
-</@tmpl.guide>
+

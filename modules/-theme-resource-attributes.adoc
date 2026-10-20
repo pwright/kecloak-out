@@ -94,6 +94,6 @@ Or to use directly in HTML templates add the following to a custom HTML template
 
 [source,html]
 ----
-<img src="${r"${url.resourcesPath}"}/img/image.jpg" alt="My image description">
+<img src="${url.resourcesPath}/img/image.jpg" alt="My image description">
 ----
 

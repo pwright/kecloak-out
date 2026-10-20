@@ -65,4 +65,4 @@ API or the account console. Deletions performed by a workflow's delete-user step
 removing an organization that owns managed members, do not yet emit it.
 * Legacy SSE CAEP profile for Apple Business Manager interop (gated behind the `sse-caep-enabled` SPI flag).
 
-</@tmpl.guide>
+

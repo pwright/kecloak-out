@@ -1,0 +1,2249 @@
+[id="protocol-mappers_{context}"]
+= Protocol Mappers
+
+
+ifeval::["" == "true"]
+WARNING: This {section} is describing a feature which is currently in preview.
+ifeval::["" == ""]
+Please provide your feedback while we’re continuing to work on this.
+endif::[]
+ifeval::["" != ""]
+Please provide your feedback by link:[joining this discussion] while we’re continuing to work on this.
+endif::[]
+endif::[]
+
+
+Protocol mappers provide a flexible way to define claims used in OAuth 2.0 tokens and endpoints, and attributes in SAML 2.0 assertions. For example adding user attributes or role mappings.
+
+This page includes a list of all built-in protocol mappers, but {project_name} also supports defining custom protocol mappers through the `ProtocolMapper` SPI.
+
+Protocol mappers can be created and managed via the {project_name} REST API using the
+link:https://www.keycloak.org/docs-api/latest/rest-api/index.html#_post_adminrealmsrealmclient_scopesclient_scope_idprotocol_mappersmodels[create protocol mapper] endpoint.
+When creating a `ProtocolMapperRepresentation`, the `config` field is a key-value map whose available entries
+depend on the specific mapper type. This page serves as a reference for the expected configuration options
+available in `ProtocolMapperRepresentation.config` for each `ProtocolMapper` implementation.
+
+For example, to create a protocol mapper that maps a user attribute into an OIDC token claim, you would send a `ProtocolMapperRepresentation` using the following JSON:
+
+[source,json]
+----
+{
+  "name": "my-user-attribute-mapper",
+  "protocol": "openid-connect",
+  "protocolMapper": "oidc-usermodel-attribute-mapper",
+  "config": {
+    "user.attribute": "phone_number",
+    "claim.name": "phone",
+    "jsonType.label": "String"
+  }
+}
+----
+
+The `protocolMapper` field corresponds to the "ID" listed in the tables below, and the `config` entries are described in each mapper's configuration table.
+
+The same mapper can be created programmatically using the {project_name} Java admin client:
+
+[source,java]
+----
+ProtocolMapperRepresentation mapper = new ProtocolMapperRepresentation();
+mapper.setName("my-user-attribute-mapper");
+mapper.setProtocol("openid-connect");
+mapper.setProtocolMapper("oidc-usermodel-attribute-mapper");
+mapper.setConfig(Map.of(
+        "user.attribute", "phone_number",
+        "claim.name", "phone",
+        "jsonType.label", "String"
+));
+
+Keycloak.getInstance(...)
+        .realm("my-realm")
+        .clientScopes()
+        .get("my-client-scope-id")
+        .getProtocolMappers()
+        .createMapper(mapper);
+----
+
+[discrete]
+== Overview
+
+The below table is an index of all available `ProtocolMapper` implementations provided by {project_name},
+grouped by the associated protocol.
+
+
+[cols="1,2",options="header"]
+|===
+|ID |Description
+
+2+a|**openid-connect**
+|<<oidc-allowed-origins-mapper,oidc-allowed-origins-mapper>>
+|Adds all allowed web origins to the 'allowed-origins' claim in the token
+|<<oidc-audience-mapper,oidc-audience-mapper>>
+|Add specified audience to the audience (aud) field of token
+|<<oidc-audience-resolve-mapper,oidc-audience-resolve-mapper>>
+|Adds all client_ids of "allowed" clients to the audience field of the token. Allowed client means the client
+ for which user has at least one client role
+|<<oidc-acr-mapper,oidc-acr-mapper>>
+|Maps the achieved LoA (Level of Authentication) to the 'acr' claim of the token
+|<<oidc-amr-mapper,oidc-amr-mapper>>
+|Add authentication method reference (AMR) to the token.
+|<<oidc-claims-param-token-mapper,oidc-claims-param-token-mapper>>
+|Claims specified by Claims parameter are put into tokens.
+|<<oidc-claims-param-value-idtoken-mapper,oidc-claims-param-value-idtoken-mapper>>
+|Claims specified by Claims parameter with value are put into an ID token.
+|<<oidc-group-membership-mapper,oidc-group-membership-mapper>>
+|Map user group membership
+|<<oidc-hardcoded-role-mapper,oidc-hardcoded-role-mapper>>
+|Hardcode a role into the access token.
+|<<oidc-hardcoded-claim-mapper,oidc-hardcoded-claim-mapper>>
+|Hardcode a claim into the token.
+|<<oidc-nonce-backwards-compatible-mapper,oidc-nonce-backwards-compatible-mapper>>
+|Adds the nonce claim to Access, Refresh and ID token
+|<<oidc-organization-group-membership-mapper,oidc-organization-group-membership-mapper>>
+|Map user Organization group membership
+|<<oidc-organization-membership-mapper,oidc-organization-membership-mapper>>
+|Map user Organization membership
+|<<oidc-sha256-pairwise-sub-mapper,oidc-sha256-pairwise-sub-mapper>>
+|Calculates a pairwise subject identifier using a salted sha-256 hash and adds it to the 'sub' claim. See OpenID Connect specification for more info about pairwise subject identifiers.
+|<<oidc-parameterized-scope-audience-mapper,oidc-parameterized-scope-audience-mapper>>
+|Adds the parameterized scope parameter value as an audience (aud) to the token.
+|<<oidc-parameterized-scope-client-sub-mapper,oidc-parameterized-scope-client-sub-mapper>>
+|Resolves a client from the parameterized scope parameter (client ID), obtains its service account user, and maps the user ID to the token claim.
+|<<oidc-parameterized-scope-mapper,oidc-parameterized-scope-mapper>>
+|Maps the parameter value from a parameterized scope directly to a token claim.
+|<<oidc-parameterized-scope-user-property-mapper,oidc-parameterized-scope-user-property-mapper>>
+|Resolves a user from a parameterized scope parameter (username, or email when the realm allows login with email) and maps a user attribute or property to a token claim.
+|<<oidc-role-name-mapper,oidc-role-name-mapper>>
+|Map an assigned role to a new name or position in the token.
+|<<oidc-session-state-mapper,oidc-session-state-mapper>>
+|Add Session State (session_state) claim
+|<<oidc-sub-mapper,oidc-sub-mapper>>
+|Add Subject (sub) claim
+|<<oidc-address-mapper,oidc-address-mapper>>
+|Maps user address attributes (street, locality, region, postal_code, and country) to the OpenID Connect 'address' claim.
+|<<oidc-usermodel-attribute-mapper,oidc-usermodel-attribute-mapper>>
+|Map a custom user attribute to a token claim.
+|<<oidc-usermodel-client-role-mapper,oidc-usermodel-client-role-mapper>>
+|Map a user client role to a token claim.
+|<<oidc-usermodel-property-mapper,oidc-usermodel-property-mapper>>
+|Map a built in user property (email, firstName, lastName) to a token claim.
+|<<oidc-usermodel-realm-role-mapper,oidc-usermodel-realm-role-mapper>>
+|Map a user realm role to a token claim.
+|<<oidc-usersessionmodel-note-mapper,oidc-usersessionmodel-note-mapper>>
+|Map a custom user session note to a token claim.
+|<<oidc-full-name-mapper,oidc-full-name-mapper>>
+|Maps the user's first and last name to the OpenID Connect 'name' claim. Format is <first> + ' ' + <last>
+
+2+a|**oid4vc**
+|<<oid4vc-context-mapper,oid4vc-context-mapper>>
+|Assigns a context to the credential.
+|<<oid4vc-vc-type-mapper,oid4vc-vc-type-mapper>>
+|Assigns a type to the credential.
+|<<oid4vc-subject-id-mapper,oid4vc-subject-id-mapper>>
+|Sets an ID for the credential subject, either from User ID or by attribute mapping.
+|<<oid4vc-generated-id-mapper,oid4vc-generated-id-mapper>>
+|Assigns a generated ID to the credential's subject. The target property can be configured, but `id` is used by default.
+|<<oid4vc-issued-at-time-claim-mapper,oid4vc-issued-at-time-claim-mapper>>
+|Allows to set the issuance date credential subject.
+|<<oid4vc-static-claim-mapper,oid4vc-static-claim-mapper>>
+|Allows to set static values for the credential subject.
+|<<oid4vc-target-role-mapper,oid4vc-target-role-mapper>>
+|Map the assigned role to the credential subject, providing the client id as the target.
+|<<oid4vc-user-attribute-mapper,oid4vc-user-attribute-mapper>>
+|Maps user attributes or properties to credential claims.
+
+2+a|**saml**
+|<<saml-audience-mapper,saml-audience-mapper>>
+|Add specified audience to the audience conditions in the assertion.
+|<<saml-audience-resolve-mapper,saml-audience-resolve-mapper>>
+|Adds all client_ids of "allowed" clients to the audience conditions in the assertion. Allowed client means any SAML client for which user has at least one client role
+|<<saml-authn-context-class-ref-mapper,saml-authn-context-class-ref-mapper>>
+|Add the AuthnContextClassRef to the AuthContext with the Level of Assurance if present.
+|<<saml-group-membership-mapper,saml-group-membership-mapper>>
+|Group names are stored in an attribute value.  There is either one attribute with multiple attribute values, or an attribute per group name depending on how you configure it.  You can also specify the attribute name i.e. 'member' or 'memberOf' being examples.
+|<<saml-hardcode-attribute-mapper,saml-hardcode-attribute-mapper>>
+|Hardcode an attribute into the SAML Assertion.
+|<<saml-hardcode-role-mapper,saml-hardcode-role-mapper>>
+|Hardcode role into SAML Assertion.
+|<<saml-organization-group-membership-mapper,saml-organization-group-membership-mapper>>
+|Add attributes to the assertion with information about the organization group membership.
+|<<saml-organization-membership-mapper,saml-organization-membership-mapper>>
+|Add an attribute to the assertion with information about the organization membership.
+|<<saml-user-attribute-mapper,saml-user-attribute-mapper>>
+|Map a custom user attribute to a SAML attribute.
+|<<saml-user-property-mapper,saml-user-property-mapper>>
+|Map a built in user property (email, firstName, lastName) to a SAML attribute type.
+|<<saml-user-session-note-mapper,saml-user-session-note-mapper>>
+|Map a user session note to a SAML attribute.
+|<<saml-role-name-mapper,saml-role-name-mapper>>
+|Map an assigned role to a new name
+|<<saml-role-list-mapper,saml-role-list-mapper>>
+|Role names are stored in an attribute value.  There is either one attribute with multiple attribute values, or an attribute per role name depending on how you configure it.  You can also specify the attribute name i.e. 'Role' or 'memberOf' being examples.
+|<<saml-user-attribute-nameid-mapper,saml-user-attribute-nameid-mapper>>
+|Map user attribute to SAML NameID value.
+
+2+a|**docker-v2**
+|<<docker-v2-allow-all-mapper,docker-v2-allow-all-mapper>>
+|Allows all grants, returning the full set of requested access attributes as permitted attributes.
+
+|===
+
+
+== openid-connect
+
+The following section contains all `ProtocolMapper` implementations associated with the openid-connect protocol. For each
+implementation we provide the "ID" of the `ProtocolMapper` and a table describing the supported configuration properties.
+
+
+[#oidc-allowed-origins-mapper]
+=== Allowed Web Origins
+
+Adds all allowed web origins to the 'allowed-origins' claim in the token
+
+*ID*: `oidc-allowed-origins-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-audience-mapper]
+=== Audience
+
+Add specified audience to the audience (aud) field of token
+
+*ID*: `oidc-audience-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Included Client Audience
+|`included.client.audience`
+|`ClientList`
+|_None_
+|The Client ID of the specified audience client will be included in the audience (aud) field of the token. If the token includes audiences, the specified value is added to them. It will not override existing audiences.
+
+|Included Custom Audience
+|`included.custom.audience`
+|`String`
+|_None_
+|This is used only if 'Included Client Audience' is empty. The specified value is included in the audience (aud) field of the token. If the token already contains audiences, the specified value is added to those audiences, without overriding them.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-audience-resolve-mapper]
+=== Audience Resolve
+
+Adds all client_ids of "allowed" clients to the audience field of the token. Allowed client means the client
+ for which user has at least one client role
+
+*ID*: `oidc-audience-resolve-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-acr-mapper]
+=== Authentication Context Class Reference (ACR)
+
+Maps the achieved LoA (Level of Authentication) to the 'acr' claim of the token
+
+*ID*: `oidc-acr-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-amr-mapper]
+=== Authentication Method Reference (AMR)
+
+Add authentication method reference (AMR) to the token.
+
+*ID*: `oidc-amr-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|===
+
+
+[#oidc-claims-param-token-mapper]
+=== Claims parameter Token
+
+Claims specified by Claims parameter are put into tokens.
+
+*ID*: `oidc-claims-param-token-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|===
+
+
+[#oidc-claims-param-value-idtoken-mapper]
+=== Claims parameter with value ID Token
+
+Claims specified by Claims parameter with value are put into an ID token.
+
+*ID*: `oidc-claims-param-value-idtoken-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Claim name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim you want to set its value. 'true' and 'false can be used for boolean values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|===
+
+
+[#oidc-group-membership-mapper]
+=== Group Membership
+
+Map user group membership
+
+*ID*: `oidc-group-membership-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Full group path
+|`full.path`
+|`boolean`
+|`true`
+|Include full path to group i.e. /top/level1/level2, false will just specify the group name. Make sure to enable this setting if your realm has a group hierarchy with duplicated group names.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-hardcoded-role-mapper]
+=== Hardcoded Role
+
+Hardcode a role into the access token.
+
+*ID*: `oidc-hardcoded-role-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Role
+|`role`
+|`Role`
+|_None_
+|Role you want added to the token.  Click 'Select Role' button to browse roles, or just type it in the textbox.  To reference a client role the syntax is clientname.clientrole, i.e. myclient.myrole
+
+|===
+
+
+[#oidc-hardcoded-claim-mapper]
+=== Hardcoded claim
+
+Hardcode a claim into the token.
+
+*ID*: `oidc-hardcoded-claim-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim value
+|`claim.value`
+|`String`
+|_None_
+|Value of the claim you want to hard code.  'true' and 'false can be used for boolean values.
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to access token response
+|`access.tokenResponse.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the access token response? Should only be used for informative and non-sensitive data
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-nonce-backwards-compatible-mapper]
+=== Nonce backwards compatible
+
+Adds the nonce claim to Access, Refresh and ID token
+
+*ID*: `oidc-nonce-backwards-compatible-mapper`
+
+
+
+[#oidc-organization-group-membership-mapper]
+=== Organization Group Membership
+
+Map user Organization group membership
+
+*ID*: `oidc-organization-group-membership-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|Add group role mappings
+|`addGroupRoleMappings`
+|`boolean`
+|`false`
+|addGroupRoleMappings.help
+
+|===
+
+
+[#oidc-organization-membership-mapper]
+=== Organization Membership
+
+Map user Organization membership
+
+*ID*: `oidc-organization-membership-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|`String`
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Multivalued
+|`multivalued`
+|`boolean`
+|`true`
+|Indicates if attribute supports multiple values. If true, the list of all values of this attribute will be set as claim. If false, just first value will be set as claim
+
+|Add organization attributes
+|`addOrganizationAttributes`
+|`boolean`
+|`false`
+|addOrganizationAttributes.help
+
+|Add organization id
+|`addOrganizationId`
+|`boolean`
+|`false`
+|addOrganizationId.help
+
+|Add organization domain
+|`addOrganizationDomain`
+|`boolean`
+|`false`
+|addOrganizationDomain.help
+
+|===
+
+
+[#oidc-sha256-pairwise-sub-mapper]
+=== Pairwise subject identifier
+
+Calculates a pairwise subject identifier using a salted sha-256 hash and adds it to the 'sub' claim. See OpenID Connect specification for more info about pairwise subject identifiers.
+
+*ID*: `oidc-sha256-pairwise-sub-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Sector Identifier URI
+|`sectorIdentifierUri`
+|`String`
+|_None_
+|Providers that use pairwise sub values and support Dynamic Client Registration SHOULD use the sector_identifier_uri parameter. It provides a way for a group of websites under common administrative control to have consistent pairwise sub values independent of the individual domain names. It also provides a way for Clients to change redirect_uri domains without having to reregister all their users.
+
+|Salt
+|`pairwiseSubAlgorithmSalt`
+|`String`
+|_None_
+|Salt used when calculating the pairwise subject identifier. If left blank, a salt will be generated.
+
+|===
+
+
+[#oidc-parameterized-scope-audience-mapper]
+=== Parameterized Scope Audience
+
+Adds the parameterized scope parameter value as an audience (aud) to the token.
+
+*ID*: `oidc-parameterized-scope-audience-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-parameterized-scope-client-sub-mapper]
+=== Parameterized Scope Client Sub
+
+Resolves a client from the parameterized scope parameter (client ID), obtains its service account user, and maps the user ID to the token claim.
+
+*ID*: `oidc-parameterized-scope-client-sub-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-parameterized-scope-mapper]
+=== Parameterized Scope Parameter
+
+Maps the parameter value from a parameterized scope directly to a token claim.
+
+*ID*: `oidc-parameterized-scope-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-parameterized-scope-user-property-mapper]
+=== Parameterized Scope User Property
+
+Resolves a user from a parameterized scope parameter (username, or email when the realm allows login with email) and maps a user attribute or property to a token claim.
+
+*ID*: `oidc-parameterized-scope-user-property-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|User Attribute
+|`user.attribute`
+|`UserProfileAttributeList`
+|_None_
+|User profile attribute or built-in property (e.g. id, email, firstName) to map to the token claim.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-role-name-mapper]
+=== Role Name Mapper
+
+Map an assigned role to a new name or position in the token.
+
+*ID*: `oidc-role-name-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Role
+|`role`
+|`Role`
+|_None_
+|Role name you want changed.  Click 'Select Role' button to browse roles, or just type it in the textbox.  To reference a client role the syntax is clientname.clientrole, i.e. myclient.myrole
+
+|New Role Name
+|`new.role.name`
+|`String`
+|_None_
+|The new role name.  The new name format corresponds to where in the access token the role will be mapped to.  So, a new name of 'myapp.newname' will map the role to that position in the access token.  A new name of 'newname' will map the role to the realm roles in the token.
+
+|===
+
+
+[#oidc-session-state-mapper]
+=== Session State (session_state)
+
+Add Session State (session_state) claim
+
+*ID*: `oidc-session-state-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-sub-mapper]
+=== Subject (sub)
+
+Add Subject (sub) claim
+
+*ID*: `oidc-sub-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-address-mapper]
+=== User Address
+
+Maps user address attributes (street, locality, region, postal_code, and country) to the OpenID Connect 'address' claim.
+
+*ID*: `oidc-address-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|User Attribute Name for Street
+|`user.attribute.street`
+|`String`
+|`street`
+|Name of User Attribute, which will be used to map to 'street_address' subclaim inside 'address' token claim. Defaults to 'street'.
+
+|User Attribute Name for Locality
+|`user.attribute.locality`
+|`String`
+|`locality`
+|Name of User Attribute, which will be used to map to the 'locality' subclaim inside the 'address' token claim. Defaults to 'locality'.
+
+|User Attribute Name for Region
+|`user.attribute.region`
+|`String`
+|`region`
+|Name of User Attribute, which will be used to map to 'region' subclaim inside 'address' token claim. Defaults to 'region'.
+
+|User Attribute Name for Postal Code
+|`user.attribute.postal_code`
+|`String`
+|`postal_code`
+|Name of User Attribute, which will be used to map to the 'postal_code' subclaim inside the 'address' token claim. Defaults to 'postal_code'.
+
+|User Attribute Name for Country
+|`user.attribute.country`
+|`String`
+|`country`
+|Name of User Attribute, which will be used to map to 'country' subclaim inside 'address' token claim. Defaults to 'country'.
+
+|User Attribute Name for Formatted Address
+|`user.attribute.formatted`
+|`String`
+|`formatted`
+|Name of the User Attribute to use for mapping to the 'formatted' subclaim inside the 'address' token claim. Defaults to 'formatted'.
+
+|===
+
+
+[#oidc-usermodel-attribute-mapper]
+=== User Attribute
+
+Map a custom user attribute to a token claim.
+
+*ID*: `oidc-usermodel-attribute-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|User Attribute
+|`user.attribute`
+|`UserProfileAttributeList`
+|_None_
+|Name of stored user attribute which is the name of an attribute within the UserModel.attribute map.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|Multivalued
+|`multivalued`
+|`boolean`
+|_None_
+|Indicates if attribute supports multiple values. If true, the list of all values of this attribute will be set as claim. If false, just first value will be set as claim
+
+|Aggregate attribute values
+|`aggregate.attrs`
+|`boolean`
+|_None_
+|Indicates if attribute values should be aggregated with the group attributes. If using OpenID Connect mapper the multivalued option needs to be enabled too in order to get all the values. Duplicated values are discarded and the order of values is not guaranteed with this option.
+
+|===
+
+
+[#oidc-usermodel-client-role-mapper]
+=== User Client Role
+
+Map a user client role to a token claim.
+
+*ID*: `oidc-usermodel-client-role-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Client ID
+|`usermodel.clientRoleMapping.clientId`
+|`ClientList`
+|_None_
+|Client ID for role mappings. Just client roles of this client will be added to the token. If this is unset, client roles of all clients will be added to the token.
+
+|Client Role prefix
+|`usermodel.clientRoleMapping.rolePrefix`
+|`String`
+|_None_
+|A prefix for each client role (optional). The special token ${client_id} can be used and this will be replaced by the actual client ID. This is useful especially when you are adding roles from all the clients (Hence 'Client ID' switch is unset) and need to present the client roles as a list, prefixed with the originating client's client ID.
+
+|Multivalued
+|`multivalued`
+|`boolean`
+|`true`
+|Indicates if attribute supports multiple values. If true, the list of all values of this attribute will be set as claim. If false, just first value will be set as claim
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and to use the dot literally, escape the dot with a backslash (\.). You can use the special token ${client_id}; it will be replaced by the actual client ID. An example usage is 'resource_access.${client_id}.roles'. This option is especially useful when you add roles from all the clients, meaning 'Client ID' is disabled, and you want client roles of each client stored separately.
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-usermodel-property-mapper]
+=== User Property
+
+Map a built in user property (email, firstName, lastName) to a token claim.
+
+*ID*: `oidc-usermodel-property-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Property
+|`user.attribute`
+|`String`
+|_None_
+|Name of the property method in the UserModel interface. For example, a value of 'email' would reference the UserModel.getEmail() method.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-usermodel-realm-role-mapper]
+=== User Realm Role
+
+Map a user realm role to a token claim.
+
+*ID*: `oidc-usermodel-realm-role-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Realm Role prefix
+|`usermodel.realmRoleMapping.rolePrefix`
+|`String`
+|_None_
+|A prefix which will be prepended to each Realm Role name (optional).
+
+|Multivalued
+|`multivalued`
+|`boolean`
+|`true`
+|Indicates if attribute supports multiple values. If true, the list of all values of this attribute will be set as claim. If false, just first value will be set as claim
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-usersessionmodel-note-mapper]
+=== User Session Note
+
+Map a custom user session note to a token claim.
+
+*ID*: `oidc-usersessionmodel-note-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|User Session Note
+|`user.session.note`
+|`String`
+|_None_
+|Name of stored user session note within the UserSessionModel.note map.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|Claim JSON Type
+|`jsonType.label`
+|`List`
+|_None_
+|JSON type that should be used to populate the json claim in the token. long, int, boolean, String and JSON are valid values.
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to access token response
+|`access.tokenResponse.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the access token response? Should only be used for informative and non-sensitive data
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+[#oidc-full-name-mapper]
+=== User's full name
+
+Maps the user's first and last name to the OpenID Connect 'name' claim. Format is <first> + ' ' + <last>
+
+*ID*: `oidc-full-name-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add to ID token
+|`id.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the ID token?
+
+|Add to access token
+|`access.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the access token?
+
+|Add to lightweight access token
+|`lightweight.claim`
+|`boolean`
+|`false`
+|Should the claim be added to the lightweight access token?
+
+|Add to userinfo
+|`userinfo.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the userinfo?
+
+|Add to token introspection
+|`introspection.token.claim`
+|`boolean`
+|`true`
+|Should the claim be added to the token introspection?
+
+|===
+
+
+== oid4vc
+
+The following section contains all `ProtocolMapper` implementations associated with the oid4vc protocol. For each
+implementation we provide the "ID" of the `ProtocolMapper` and a table describing the supported configuration properties.
+
+
+[#oid4vc-context-mapper]
+=== Credential Context Mapper
+
+Assigns a context to the credential.
+
+*ID*: `oid4vc-context-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Verifiable Credentials Context
+|`context`
+|`String`
+|`https://www.w3.org/2018/credentials/v1`
+|Context of the credential.
+
+|===
+
+
+[#oid4vc-vc-type-mapper]
+=== Credential Type Mapper
+
+Assigns a type to the credential.
+
+*ID*: `oid4vc-vc-type-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Verifiable Credential Type
+|`vcTypeProperty`
+|`String`
+|_None_
+|Type of the credential.
+
+|===
+
+
+[#oid4vc-subject-id-mapper]
+=== CredentialSubject ID Mapper
+
+Sets an ID for the credential subject, either from User ID or by attribute mapping.
+
+*ID*: `oid4vc-subject-id-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|`id`
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In case that 'id' is used as a value of this configuration property, it would be mapped into sd-jwt credential as claim 'sub'.
+
+|User attribute
+|`userAttribute`
+|`List`
+|`username`
+|The name of the user attribute that maps to the subject id.
+
+|===
+
+
+[#oid4vc-generated-id-mapper]
+=== Generated ID Mapper
+
+Assigns a generated ID to the credential's subject. The target property can be configured, but `id` is used by default.
+
+*ID*: `oid4vc-generated-id-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|ID Property Name
+|`claim.name`
+|`String`
+|`id`
+|Name of the property to contain the generated id.
+
+|===
+
+
+[#oid4vc-issued-at-time-claim-mapper]
+=== Issuance Date Claim Mapper
+
+Allows to set the issuance date credential subject.
+
+*ID*: `oid4vc-issued-at-time-claim-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Time Claim Name
+|`claim.name`
+|`String`
+|`iat`
+|Name of this time claim. Default is iat
+
+|Truncate To Time Unit
+|`truncateToTimeUnit`
+|`List`
+|_None_
+|Truncate time to the start of the selected unit. Supported: SECONDS, MINUTES, HOURS, HALF_DAYS, DAYS, WEEKS, MONTHS, YEARS. Such as to prevent correlation of credentials based on this time value.
+
+|Source of Value
+|`valueSource`
+|`List`
+|`COMPUTE`
+|Tells the protocol mapper where to get the information. For now: COMPUTE or VC. Default is COMPUTE, in which this protocol mapper computes the current time in seconds. With value `VC`, the time is read from the verifiable credential issuance date field.
+
+|===
+
+
+[#oid4vc-static-claim-mapper]
+=== Static Claim Mapper
+
+Allows to set static values for the credential subject.
+
+*ID*: `oid4vc-static-claim-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Static Claim Property Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the property to contain the static value.
+
+|Static Claim Value
+|`staticValue`
+|`String`
+|_None_
+|Value to be set for the property.
+
+|===
+
+
+[#oid4vc-target-role-mapper]
+=== Target-Role Mapper
+
+Map the assigned role to the credential subject, providing the client id as the target.
+
+*ID*: `oid4vc-target-role-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Client ID
+|`clientId`
+|`String`
+|`roles`
+|Property to configure the client to get the roles from.
+
+|===
+
+
+[#oid4vc-user-attribute-mapper]
+=== User Attribute Mapper
+
+Maps user attributes or properties to credential claims.
+
+*ID*: `oid4vc-user-attribute-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Mandatory Claim
+|`vc.mandatory`
+|`boolean`
+|`false`
+|Indicates whether this claim must be present in the issued credential. This information is included in the credential metadata for wallet applications.
+
+|Claim Display Information
+|`vc.display`
+|`ClaimDisplay`
+|_None_
+|Display metadata for wallet applications to show user-friendly claim names. Provide display entries with name and locale for internationalization support.
+
+|mDoc Namespace
+|`mdoc.namespace`
+|`String`
+|_None_
+|Namespace for mso_mdoc claims. Used only when issuing mso_mdoc credentials.
+
+|Token Claim Name
+|`claim.name`
+|`String`
+|_None_
+|Name of the claim to insert into the token. This can be a fully qualified name such as 'address.street'. In this case, a nested JSON object is created. To prevent nesting and use dot literally, escape the dot with a backslash (\.).
+
+|User Attribute
+|`userAttribute`
+|`UserProfileAttributeList`
+|_None_
+|Name of stored user attribute which is the name of an attribute within the UserModel.attribute map.
+
+|Aggregate attributes
+|`aggregateAttributes`
+|`boolean`
+|_None_
+|Should the mapper aggregate user attributes.
+
+|===
+
+
+== saml
+
+The following section contains all `ProtocolMapper` implementations associated with the saml protocol. For each
+implementation we provide the "ID" of the `ProtocolMapper` and a table describing the supported configuration properties.
+
+
+[#saml-audience-mapper]
+=== Audience
+
+Add specified audience to the audience conditions in the assertion.
+
+*ID*: `saml-audience-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Included Client Audience
+|`included.client.audience`
+|`ClientList`
+|_None_
+|The Client ID of the specified audience client will be included in the audience (aud) field of the token. If the token includes audiences, the specified value is added to them. It will not override existing audiences.
+
+|Included Custom Audience
+|`included.custom.audience`
+|`String`
+|_None_
+|This is used only if 'Included Client Audience' is empty. The specified value is included in the audience (aud) field of the token. If the token already contains audiences, the specified value is added to those audiences, without overriding them.
+
+|===
+
+
+[#saml-audience-resolve-mapper]
+=== Audience Resolve
+
+Adds all client_ids of "allowed" clients to the audience conditions in the assertion. Allowed client means any SAML client for which user has at least one client role
+
+*ID*: `saml-audience-resolve-mapper`
+
+
+
+[#saml-authn-context-class-ref-mapper]
+=== AuthnContextClassRef mapper
+
+Add the AuthnContextClassRef to the AuthContext with the Level of Assurance if present.
+
+*ID*: `saml-authn-context-class-ref-mapper`
+
+
+
+[#saml-group-membership-mapper]
+=== Group list
+
+Group names are stored in an attribute value.  There is either one attribute with multiple attribute values, or an attribute per group name depending on how you configure it.  You can also specify the attribute name i.e. 'member' or 'memberOf' being examples.
+
+*ID*: `saml-group-membership-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Group attribute name
+|`attribute.name`
+|`String`
+|`member`
+|Name of the SAML attribute you want to put your groups into.  i.e. 'member', 'memberOf'.
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|Single Group Attribute
+|`single`
+|`boolean`
+|`true`
+|If true, all groups will be stored under one attribute with multiple attribute values.
+
+|Full group path
+|`full.path`
+|`boolean`
+|`true`
+|Include full path to group i.e. /top/level1/level2, false will just specify the group name
+
+|===
+
+
+[#saml-hardcode-attribute-mapper]
+=== Hardcoded attribute
+
+Hardcode an attribute into the SAML Assertion.
+
+*ID*: `saml-hardcode-attribute-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute Name
+|`attribute.name`
+|`String`
+|_None_
+|SAML Attribute Name
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|Attribute value
+|`attribute.value`
+|`String`
+|_None_
+|Value of the attribute you want to hard code.
+
+|===
+
+
+[#saml-hardcode-role-mapper]
+=== Hardcoded role
+
+Hardcode role into SAML Assertion.
+
+*ID*: `saml-hardcode-role-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Role
+|`role`
+|`Role`
+|_None_
+|Arbitrary role name you want to hardcode.  This role does not have to exist in current realm and can be just any string you need
+
+|===
+
+
+[#saml-organization-group-membership-mapper]
+=== Organization Group Membership
+
+Add attributes to the assertion with information about the organization group membership.
+
+*ID*: `saml-organization-group-membership-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Add group role mappings
+|`addGroupRoleMappings`
+|`boolean`
+|`false`
+|addGroupRoleMappings.help
+
+|===
+
+
+[#saml-organization-membership-mapper]
+=== Organization Membership
+
+Add an attribute to the assertion with information about the organization membership.
+
+*ID*: `saml-organization-membership-mapper`
+
+
+
+[#saml-user-attribute-mapper]
+=== User Attribute
+
+Map a custom user attribute to a SAML attribute.
+
+*ID*: `saml-user-attribute-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|User Attribute
+|`user.attribute`
+|`UserProfileAttributeList`
+|_None_
+|Name of stored user attribute which is the name of an attribute within the UserModel.attribute map.
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute Name
+|`attribute.name`
+|`String`
+|_None_
+|SAML Attribute Name
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|Aggregate attribute values
+|`aggregate.attrs`
+|`boolean`
+|_None_
+|Indicates if attribute values should be aggregated with the group attributes. If using OpenID Connect mapper the multivalued option needs to be enabled too in order to get all the values. Duplicated values are discarded and the order of values is not guaranteed with this option.
+
+|===
+
+
+[#saml-user-property-mapper]
+=== User Property
+
+Map a built in user property (email, firstName, lastName) to a SAML attribute type.
+
+*ID*: `saml-user-property-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Property
+|`user.attribute`
+|`UserProfileAttributeList`
+|_None_
+|Name of the property method in the UserModel interface. For example, a value of 'email' would reference the UserModel.getEmail() method.
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute Name
+|`attribute.name`
+|`String`
+|_None_
+|SAML Attribute Name
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|===
+
+
+[#saml-user-session-note-mapper]
+=== User Session Note
+
+Map a user session note to a SAML attribute.
+
+*ID*: `saml-user-session-note-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|User Session Note Attribute
+|`note`
+|`String`
+|_None_
+|The user session note you want to grab the value from.
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute Name
+|`attribute.name`
+|`String`
+|_None_
+|SAML Attribute Name
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|===
+
+
+[#saml-role-name-mapper]
+=== Role Name Mapper
+
+Map an assigned role to a new name
+
+*ID*: `saml-role-name-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Role
+|`role`
+|`Role`
+|_None_
+|Role name you want changed.  Click 'Select Role' button to browse roles, or just type it in the textbox.  To reference a client role the syntax is clientname.clientrole, i.e. myclient.myrole
+
+|New Role Name
+|`new.role.name`
+|`String`
+|_None_
+|The new role name.
+
+|===
+
+
+[#saml-role-list-mapper]
+=== Role list
+
+Role names are stored in an attribute value.  There is either one attribute with multiple attribute values, or an attribute per role name depending on how you configure it.  You can also specify the attribute name i.e. 'Role' or 'memberOf' being examples.
+
+*ID*: `saml-role-list-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|Role attribute name
+|`attribute.name`
+|`String`
+|`Role`
+|Name of the SAML attribute you want to put your roles into.  i.e. 'Role', 'memberOf'.
+
+|Friendly Name
+|`friendly.name`
+|`String`
+|_None_
+|Standard SAML attribute setting.  An optional, more human-readable form of the attribute's name that can be provided if the actual attribute name is cryptic.
+
+|SAML Attribute NameFormat
+|`attribute.nameformat`
+|`List`
+|_None_
+|SAML Attribute NameFormat.  Can be basic, URI reference, or unspecified.
+
+|Single Role Attribute
+|`single`
+|`boolean`
+|`true`
+|If true, all roles will be stored under one attribute with multiple attribute values.
+
+|===
+
+
+[#saml-user-attribute-nameid-mapper]
+=== User Attribute Mapper For NameID
+
+Map user attribute to SAML NameID value.
+
+*ID*: `saml-user-attribute-nameid-mapper`
+
+[cols="1,1,1,1,2",options="header"]
+|===
+|Name |Property |Type |Default |Description
+
+|name-id-format
+|`mapper.nameid.format`
+|`List`
+|_None_
+|This mapper is applied only if the NameID format of the incoming AuthnRequest is equal to this value.
+
+|User Attribute
+|`user.attribute`
+|`UserProfileAttributeList`
+|_None_
+|Name of stored user attribute which is the name of an attribute within the UserModel.attribute map.
+
+|===
+
+
+== docker-v2
+
+The following section contains all `ProtocolMapper` implementations associated with the docker-v2 protocol. For each
+implementation we provide the "ID" of the `ProtocolMapper` and a table describing the supported configuration properties.
+
+
+[#docker-v2-allow-all-mapper]
+=== Allow All
+
+Allows all grants, returning the full set of requested access attributes as permitted attributes.
+
+*ID*: `docker-v2-allow-all-mapper`
+
+
+
+
