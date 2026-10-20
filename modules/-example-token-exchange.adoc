@@ -13,7 +13,7 @@ curl -s -X POST \
   --data-urlencode "client_secret=EXAMPLE_SECRET" \
   --data-urlencode "grant_type=password" \
   --data-urlencode "username=testuser" \
-  --data-urlencode "password=EXAMPLE_PASSWORD"
+  --data-urlencode "password=EXAMPLE_PASSWORD_PASSWORD"
 ----
 
 Now `clienta` can exchange the token, including scope `access-domainb`, and restricting the audience to `http://localhost:8080/realms/domainb` (issuer of `domainb`).

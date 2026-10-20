@@ -9,7 +9,7 @@ This parameter must be the client identifier for the target client that you conf
 ----
 curl -X POST \
     -d "client_id=starting-client" \
-    -d "client_secret=EXAMPLE_SECRET" \
+    -d "client_secret=EXAMPLE_SECRET client secret" \
     --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
     -d "subject_token=...." \
     --data-urlencode "requested_token_type=urn:ietf:params:oauth:token-type:refresh_token" \

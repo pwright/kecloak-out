@@ -154,7 +154,7 @@ db=postgres
 db-username=keycloak
 
 # The password of the database user.
-db-password=EXAMPLE_PASSWORD
+db-password=EXAMPLE_PASSWORD_PASSWORD
 
 # Sets the hostname of the default JDBC URL of the chosen vendor
 db-url-host=keycloak-postgres

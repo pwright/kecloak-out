@@ -272,8 +272,8 @@ podman|docker run --name mykeycloak -p 127.0.0.1:8080:8080 \
         start \
         --hostname=localhost --http-enabled=true
         --db=postgres --features=token-exchange \
-        --db-url=<JDBC-URL> --db-username=<DB-USER> --db-password=EXAMPLE_PASSWORD \
-        --https-key-store-file=<file> --https-key-store-password=EXAMPLE_PASSWORD
+        --db-url=<JDBC-URL> --db-username=<DB-USER> --db-password=EXAMPLE_PASSWORD_PASSWORD \
+        --https-key-store-file=<file> --https-key-store-password=EXAMPLE_PASSWORD_PASSWORD
 ----
 
 Running this command starts a {project_name} server that detects and applies the build options first.

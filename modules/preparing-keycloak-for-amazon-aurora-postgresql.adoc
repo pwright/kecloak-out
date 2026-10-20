@@ -308,7 +308,7 @@ The following example demonstrates how to configure database mTLS using these op
 
 [source,bash]
 ----
-bin/kc.[sh|bat] start --db=postgres --db-tls-mode=verify-server --db-tls-trust-store-file=/path/to/truststore.pem --db-mtls-key-store-file=/path/to/keystore.p12 --db-mtls-key-store-password=EXAMPLE_PASSWORD
+bin/kc.[sh|bat] start --db=postgres --db-tls-mode=verify-server --db-tls-trust-store-file=/path/to/truststore.pem --db-mtls-key-store-file=/path/to/keystore.p12 --db-mtls-key-store-password=EXAMPLE_PASSWORD_PASSWORD
 ----
 
 

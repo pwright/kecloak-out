@@ -114,7 +114,7 @@ To run the server with BCFIPS in non-approved mode, enter the following command:
 
 [source,bash]
 ----
-bin/kc.[sh|bat] start --features=fips --hostname=localhost --https-key-store-password=EXAMPLE_PASSWORD --log-level=INFO,org.keycloak.common.crypto:TRACE,org.keycloak.crypto:TRACE
+bin/kc.[sh|bat] start --features=fips --hostname=localhost --https-key-store-password=EXAMPLE_PASSWORD_PASSWORD --log-level=INFO,org.keycloak.common.crypto:TRACE,org.keycloak.crypto:TRACE
 ----
 
 NOTE: In non-approved mode, the default keystore type (as well as default truststore type) is PKCS12. Hence if you generated a BCFKS keystore as described above,

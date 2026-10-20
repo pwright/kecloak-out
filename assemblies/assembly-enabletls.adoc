@@ -73,7 +73,7 @@ If your keystore does not have one of these extensions, you must set the `https-
 You can set a secure password for your keystore using the `https-key-store-password` option:
 [source,bash]
 ----
-bin/kc.[sh|bat] start --https-key-store-password=EXAMPLE_PASSWORD
+bin/kc.[sh|bat] start --https-key-store-password=EXAMPLE_PASSWORD_PASSWORD
 ----
 
 If no password is set, the default password `password` is used.

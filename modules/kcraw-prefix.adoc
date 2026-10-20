@@ -177,7 +177,7 @@ bin/kc.[sh|bat] build --db=postgres
 ----
 db-url-host=keycloak-postgres
 db-username=keycloak
-db-password=EXAMPLE_PASSWORD
+db-password=EXAMPLE_PASSWORD_PASSWORD
 hostname=mykeycloak.acme.com
 https-certificate-file
 ----

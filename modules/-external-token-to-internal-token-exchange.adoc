@@ -55,7 +55,7 @@ parameter.
 ----
 curl -X POST \
     -d "client_id=starting-client" \
-    -d "client_secret=EXAMPLE_SECRET" \
+    -d "client_secret=EXAMPLE_SECRET client secret" \
     --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
     -d "subject_token=...." \
     -d "subject_issuer=myOidcProvider" \
@@ -111,7 +111,7 @@ value of this parameter must be a username or user id.
 ----
 curl -X POST \
     -d "client_id=starting-client" \
-    -d "client_secret=EXAMPLE_SECRET" \
+    -d "client_secret=EXAMPLE_SECRET client secret" \
     --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
     -d "subject_token=...." \
     --data-urlencode "requested_token_type=urn:ietf:params:oauth:token-type:access_token" \
@@ -196,7 +196,7 @@ a valid user.  You can also specify an `audience` parameter if you wish.
 ----
 curl -X POST \
     -d "client_id=starting-client" \
-    -d "client_secret=EXAMPLE_SECRET" \
+    -d "client_secret=EXAMPLE_SECRET client secret" \
     --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
     -d "requested_subject=wburke" \
     http://localhost:8080{kc_realms_path}/myrealm/protocol/openid-connect/token

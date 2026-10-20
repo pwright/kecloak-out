@@ -91,7 +91,7 @@ The default is to run the service as the Local System account - `--service-user`
 
 [source,bash]
 ----
-bin\kc.bat tools windows-service install --service-user="DOMAIN\Username" --service-password=EXAMPLE_PASSWORD
+bin\kc.bat tools windows-service install --service-user="DOMAIN\Username" --service-password=EXAMPLE_PASSWORD_PASSWORD
 ----
 
 You can supply the service password securely via an environment variable, which is recommended:
